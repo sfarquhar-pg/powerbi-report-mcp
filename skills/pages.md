@@ -25,7 +25,7 @@ Use these patterns to create, organise, size, theme, navigate between, and inter
 ### Page visuals & chrome
 | Tool | Purpose |
 |---|---|
-| `pbir_set_page_background` | Canvas background color and/or wallpaper, with `clear` option |
+| `pbir_set_page_background` | Canvas background color, with `clear` option |
 | `pbir_set_filter_pane` | Show/hide and expand/collapse the filter pane (report-wide) |
 | `pbir_set_visual_interaction` | Cross-filter / cross-highlight / disable between two visuals on a page |
 | `pbir_manage_extension_measures` | Add/list/remove report-level DAX measures (no model edit needed) |
@@ -190,23 +190,20 @@ Returns each page with `id`, `displayName`, `isActive`, `hidden`, `visualCount`,
 
 ## `pbir_set_page_background`
 
-Set the canvas background color and/or wallpaper (the area behind the canvas) for one page.
+Set the canvas background color for one page.
 
 ```json
 {
   "pageId": "<id>",
   "color": "#0D1117",
-  "transparency": 0,
-  "wallpaperColor": "#000000",
-  "wallpaperTransparency": 0
+  "transparency": 0
 }
 ```
 
 - `color` / `transparency` → canvas background (the page area itself)
-- `wallpaperColor` / `wallpaperTransparency` → the area surrounding the canvas
+- Wallpaper inputs are rejected because `page.objects.wallpaper` is not accepted by the current Fabric PBIR page schema.
 - `transparency` is `0–100` (0 = opaque, 100 = fully transparent)
-- Either layer is optional — pass only what you need
-- Pass `clear: true` to remove both:
+- Pass `clear: true` to remove the background:
   ```json
   { "pageId": "<id>", "clear": true }
   ```

@@ -2,6 +2,9 @@
   "name": "powerbi-report-mcp",
   "version": "0.9.6",
   "description": "MCP server for building Power BI reports (PBIR format)",
+  "engines": {
+    "node": ">=20"
+  },
   "main": "dist/index.js",
   "bin": {
     "powerbi-report-mcp": "dist/index.js"
@@ -33,9 +36,11 @@
     "test:surface": "node scripts/test-tool-surface.js",
     "test:pagination": "node scripts/test-pagination.js",
     "test:set-report": "node scripts/test-set-report.js",
+    "test:fabric": "node scripts/test-fabric.js",
+    "test:page-background": "node scripts/test-page-background.js",
     "schema:check": "node scripts/refresh-theme-schema.js --check",
     "schema:refresh": "node scripts/refresh-theme-schema.js",
-    "test:all": "npm run build && npm run audit:strict && npm run test:wireframe && npm run test:binding && npm run test:measure-home-table && npm run test:extract-title && npm run test:layout && npm run test:grid && npm run test:slicer && npm run test:schema-docs && npm run test:surface && npm run test:pagination && npm run test:set-report && npm run test:validate-wireframe",
+    "test:all": "npm run build && npm run audit:strict && npm run test:wireframe && npm run test:binding && npm run test:measure-home-table && npm run test:extract-title && npm run test:layout && npm run test:grid && npm run test:slicer && npm run test:schema-docs && npm run test:surface && npm run test:pagination && npm run test:set-report && npm run test:fabric && npm run test:page-background && npm run test:validate-wireframe",
     "hooks:install": "node scripts/install-hooks.js",
     "plugin:build": "node scripts/build-plugin.js",
     "eval:install": "pip install -r evals/requirements.txt",
@@ -43,12 +48,14 @@
     "measure:session": "node scripts/measure-session-cost.js"
   },
   "dependencies": {
+    "@azure/identity": "^4.13.1",
+    "@azure/identity-cache-persistence": "^1.3.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^20.x",
-    "typescript": "^5.x",
-    "ts-node": "^10.x"
+    "ts-node": "^10.x",
+    "typescript": "^5.x"
   }
 }

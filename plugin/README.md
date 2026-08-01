@@ -32,7 +32,12 @@ The first time you ask, the agent will request the path to your `.pbip` folder a
 
 - A `.pbip` (Power BI Project) folder. In Power BI Desktop: File > Save As > "Power BI Project (folder)".
 - Power BI Desktop open on the same project (so you can refresh and see results).
-- Node.js 18+ available on your machine (Cowork bundles this).
+- Node.js 20+ available on your machine (Cowork bundles this).
+
+Fabric publishing uses process-only authentication in the bundled plugin. The
+optional encrypted cross-process cache depends on native OS keyring modules and
+is available in the normal npm/local server installation, not the single-file
+Cowork bundle.
 
 ## How it works
 

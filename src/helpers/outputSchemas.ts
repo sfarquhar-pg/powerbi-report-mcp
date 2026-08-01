@@ -131,6 +131,27 @@ const getReportSchema = z
   })
   .passthrough();
 
+const fabricAuthSchema = z
+  .object({
+    ...envelope,
+    authenticated: z.boolean().optional(),
+    account: z.string().optional(),
+    tenantId: z.string().optional(),
+    cacheMode: z.enum(["memory", "persistent"]).optional(),
+    persistentCacheConfigured: z.boolean().optional(),
+    tokenExposed: z.literal(false).optional(),
+    expires: z.record(z.string(), z.string()).optional(),
+    note: z.string().optional(),
+  })
+  .passthrough();
+
+const fabricFolderSchema = z
+  .object({
+    ...envelope,
+    folder: z.object({}).passthrough().optional(),
+  })
+  .passthrough();
+
 const listFiltersSchema = z
   .object({
     ...envelope,
@@ -336,6 +357,8 @@ export const READ_TOOL_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
   pbir_list_visuals: listVisualsSchema.shape,
   pbir_get_visual: getVisualSchema.shape,
   pbir_get_report: getReportSchema.shape,
+  pbir_fabric_auth: fabricAuthSchema.shape,
+  pbir_fabric_resolve_folder: fabricFolderSchema.shape,
   pbir_list_filters: listFiltersSchema.shape,
   pbir_list_bookmarks: listBookmarksSchema.shape,
   pbir_list_report_themes: listReportThemesSchema.shape,

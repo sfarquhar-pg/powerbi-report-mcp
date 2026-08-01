@@ -5,7 +5,7 @@
 
 `powerbi-report-mcp` is an MCP (Model Context Protocol) server that enables AI agents to create and modify Power BI reports in PBIR format. It communicates over **stdio** using the `@modelcontextprotocol/sdk`, making it agent-agnostic -- any MCP-compatible client (Claude Code, Copilot, custom agents) can drive it.
 
-The server exposes 54 tools for page management, visual creation, data binding, formatting, theming, filtering, bulk operations, and model usage analysis. All tool inputs are validated with Zod schemas. All tool handlers are wrapped in a `safe()` error boundary so that failures return structured `isError` responses instead of crashing the process.
+The server exposes 60 report tools for local PBIR authoring, validation, Fabric authentication, folder resolution, and confirmed service publishing. All tool inputs are validated with Zod schemas. All tool handlers are wrapped in a `safe()` error boundary so that failures return structured `isError` responses instead of crashing the process.
 
 **Key dependencies:** `@modelcontextprotocol/sdk` (MCP protocol), `zod` (schema validation). No Power BI SDK is used -- the server reads and writes PBIR JSON files directly on disk.
 
@@ -205,7 +205,7 @@ To reduce token overhead for LLM clients, the server loads only a default subset
 **DEFAULT_TOOLS** (always loaded):
 `pbir_set_report`, `pbir_list_pages`, `pbir_list_visuals`, `pbir_create_page`, `pbir_add_visual`, `pbir_get_visual`, `pbir_format_visual`, `pbir_update_visual_bindings`, `pbir_set_report_theme`, `pbir_bulk_bind`, `pbir_model_usage`
 
-**ALL_TOOLS** -- a map of every tool name to its description (54 tools total).
+**ALL_TOOLS** -- the canonical list of 60 report tool names.
 
 **Activation mechanisms:**
 

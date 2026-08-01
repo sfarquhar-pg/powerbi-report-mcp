@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Default Tool Set
 //
-// The 12 tools loaded at MCP server startup when MCP_TOOLS=all is NOT set.
+// The 14 tools loaded at MCP server startup when MCP_TOOLS=minimal is set.
 // All other tools live in the on-demand catalog and are activated via the
 // pbir_load_tools meta-tool. The default set is tuned for low schema overhead
 // (~3,500 tokens) while still covering the happy-path workflow:
@@ -30,6 +30,8 @@ export const DEFAULT_TOOLS: ReadonlySet<string> = new Set([
   // tool catalog at startup, so a lazy-loaded pbir_reload_report can be activated
   // but not invoked. Defaulting it avoids that trap.
   "pbir_reload_report",
+  // Keep explicit auth available in clients that snapshot tools at startup.
+  "pbir_fabric_auth",
   // pbir_lookup_theme_property is lightweight (3 optional string params) and is the
   // source of truth for valid pbir_format_visual / pbir_set_report_theme property names.
   // Keeping it in the default set avoids the "agent guesses property name,

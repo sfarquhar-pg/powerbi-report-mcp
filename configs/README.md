@@ -44,6 +44,11 @@ certificate variables in the MCP client's environment. Do not commit those
 values. Interactive authentication is the default; set `AZURE_TENANT_ID` when
 the account must be constrained to a specific tenant.
 
+The report server's optional Fabric publishing tools use explicit login and a
+process-only token cache by default. Set `PBIR_FABRIC_TOKEN_CACHE=persistent`
+to reuse authentication across server restarts. This requires working OS secure
+storage and never falls back to plaintext token storage.
+
 **1. Update the paths** in your chosen config file:
 - Replace `C:\\path\\to\\powerbi-report-mcp` with the actual report-mcp install location
 - Replace `C:\\path\\to\\powerbi-modeling-mcp` with the actual modeling-mcp install location (the VS Code extension installs to `%USERPROFILE%\.vscode\extensions\analysis-services.powerbi-modeling-mcp-*\`)
@@ -76,7 +81,7 @@ Add the report path as a second argument to skip the `pbir_set_report` step:
 
 ## Optional: Load all tools at startup
 
-Add an `env` block to load all 54 tools instead of the default 11:
+Add an `env` block to load all 60 report tools instead of the minimal 14:
 
 ```json
 "powerbi-report-mcp": {

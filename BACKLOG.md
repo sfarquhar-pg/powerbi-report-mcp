@@ -61,6 +61,12 @@ can't be reached over the MCP wire.
 | 4 | Bindings UI in the wireframe scaffolder modal — model field picker, fed by `pbir_model_usage` field inventory | Spec'd as deferred in artifact v1 ("we'll know if it's worth building once people use v1") | L |
 | 5 | New tool `pbir_verify_project({ pageId? })` — runs the 7-step post-edit checklist (from v0.9.2 item 7) programmatically, returns `[{check, passed, details}]`. Pairs naturally with `pbir_validate_wireframe` above (both are "give me actionable verification across the whole project" tools). Once this exists, the skill version (v0.9.2 item 7) can either stay as guidance or get slimmed to "call `pbir_verify_project` after edits" | pbi-pilot SKILL.md §"Mandatory Post-Edit Visibility Checklist" promoted from skill to MCP tool | M |
 
+Fabric project creation, explicit auth/session reuse, folder resolution, and
+confirmed report create/update were implemented during the PGS Report Test
+workflow. A future `pbir_verify_project` should include optional Fabric schema
+round-trip validation, since local validation did not catch a service PBIR page
+schema mismatch in `background.properties.show` / `objects.wallpaper`.
+
 Acceptance: bumps to v0.10.0, validator output makes warnings visible
 where they're actionable (in the artifact, on the canvas).
 

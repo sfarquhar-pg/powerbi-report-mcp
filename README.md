@@ -9,10 +9,10 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/version-0.9.6-green.svg" alt="Version">
-  <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg" alt="Node.js">
+  <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node.js">
   <img src="https://img.shields.io/badge/MCP-1.12-purple.svg" alt="MCP SDK">
   <img src="https://img.shields.io/badge/Power%20BI-PBIR-yellow.svg" alt="PBIR Format">
-  <img src="https://img.shields.io/badge/tools-56-orange.svg" alt="56 Tools">
+  <img src="https://img.shields.io/badge/tools-60-orange.svg" alt="60 Tools">
 </p>
 
 <p align="center">
@@ -51,7 +51,7 @@ Full details: **[CHANGELOG.md](CHANGELOG.md)**.
 
 The first open-source **MCP server for Power BI report authoring**. It connects Claude (or any MCP-compatible client — see [Tested clients](#tested-clients)) to Power BI's PBIR (Power BI Report) file format, turning natural language into real report pages — cards, charts, tables, themes, filters, and formatting.
 
-No REST API keys. No Power BI service. Just local files + Claude.
+Local authoring needs no REST API keys or Power BI Service. Optional Fabric publishing uses explicit Microsoft Entra sign-in and a private cached session; bearer tokens are never returned to the agent.
 
 ```
 You: "Build me a sales dashboard with KPIs, trend charts, and a detail table"
@@ -159,7 +159,7 @@ claude mcp add powerbi-report-mcp node C:\path\to\powerbi-report-mcp\dist\index.
 
 #### Optional: opt into minimal tool loading
 
-For long Claude Code / Cowork sessions where catalog tokens matter, set `MCP_TOOLS=minimal` to load only the 12 default tools at startup (saves ~7,500 catalog tokens; the remaining 44 activate on demand via `pbir_load_tools`):
+For long Claude Code / Cowork sessions where catalog tokens matter, set `MCP_TOOLS=minimal` to load only the 14 default tools at startup (the remaining 46 activate on demand via `pbir_load_tools`):
 
 ```jsonc
 {
@@ -177,8 +177,8 @@ For long Claude Code / Cowork sessions where catalog tokens matter, set `MCP_TOO
 
 Trade-off summary (full breakdown in [Smart Tool Loading](#smart-tool-loading) below):
 
-- **Default (load-all)** — All 56 tools available immediately. Best for unpredictable/exploratory sessions and clients that snapshot the tool list at startup. ~14,500 catalog tokens.
-- **`MCP_TOOLS=minimal`** — 12 default tools at startup; others activatable via `pbir_load_tools`. Best for known-narrow workflows. ~7,000 catalog tokens. Requires MCP client support for `notifications/tools/list_changed` to surface activated tools mid-session — Claude Code/Desktop don't refresh; Cowork may; verify before relying.
+- **Default (load-all)** — All 60 report tools available immediately. Best for unpredictable/exploratory sessions and clients that snapshot the tool list at startup.
+- **`MCP_TOOLS=minimal`** — 14 default tools at startup; others activatable via `pbir_load_tools`. Best for known-narrow workflows. Requires MCP client support for `notifications/tools/list_changed` to surface activated tools mid-session — Claude Code/Desktop don't refresh; Cowork may; verify before relying.
 
 ### 3b. Cowork plugin
 
@@ -206,6 +206,18 @@ Create a page called "Overview" with 4 KPI cards and a bar chart by country
 
 Open the `.pbip` file — or if already open, press `Ctrl+Shift+F5` to refresh.
 
+### Optional: Publish to Fabric
+
+```text
+pbir_fabric_auth({ operation: "login" })
+pbir_fabric_resolve_folder({ workspaceId: "...", folder: "Test" })
+pbir_fabric_publish_report({ workspaceId: "...", folder: "Test", confirm: true })
+```
+
+Authentication is reused for the MCP process and refreshed silently when possible. Remote actions never trigger surprise browser prompts: if reauthentication is required, call `pbir_fabric_auth` again. Local PBIR edits never require login.
+
+Set `PBIR_FABRIC_TOKEN_CACHE=persistent` to opt into Azure Identity's encrypted OS-backed cache. Plaintext fallback is disabled; systems without a working keyring use the safer default process-only cache.
+
 ### Headless / eval mode
 
 For automated/eval use you can auto-bind a report at startup with the `PBIR_REPORT_PATH` env var instead of calling `pbir_set_report`:
@@ -220,9 +232,9 @@ If the path is invalid the server logs to stderr and continues running unbound (
 
 ## Smart Tool Loading
 
-By default all **56 tools load at startup** — this is the most compatible configuration, and what you want for Claude Desktop and most other MCP clients whose tool catalog is a snapshot taken at session start.
+By default all **60 report tools load at startup** — this is the most compatible configuration, and what you want for Claude Desktop and most other MCP clients whose tool catalog is a snapshot taken at session start.
 
-For token-sensitive setups (e.g. Claude Code with large prompt budgets on dev machines), you can opt into the **minimal** mode — only **12 core tools** load at startup, and the LLM activates more on-demand via `pbir_load_tools`:
+For token-sensitive setups (e.g. Claude Code with large prompt budgets on dev machines), you can opt into the **minimal** mode — only **14 core tools** load at startup, and the LLM activates more on-demand via `pbir_load_tools`:
 
 ```json
 "env": { "MCP_TOOLS": "minimal" }
@@ -253,9 +265,9 @@ graph TD
 
 | Mode | Tools at Startup | Token Overhead | Use Case |
 |------|------------------|----------------|----------|
-| `default` | 56 + `pbir_load_tools` | ~16,500 tokens | Claude Desktop, most clients, first-time users |
-| `MCP_TOOLS=minimal` | 12 + `pbir_load_tools` | **~3,400 tokens** | Claude Code / clients that refresh the tool list mid-session |
-| `MCP_TOOLS=all` *(legacy alias)* | 56 + `pbir_load_tools` | ~16,500 tokens | Same as default; kept for backward-compat |
+| `default` | 60 + `pbir_load_tools` | varies by client | Claude Desktop, most clients, first-time users |
+| `MCP_TOOLS=minimal` | 14 + `pbir_load_tools` | reduced | Claude Code / clients that refresh the tool list mid-session |
+| `MCP_TOOLS=all` *(legacy alias)* | 60 + `pbir_load_tools` | varies by client | Same as default; kept for backward-compat |
 
 > Default is "load everything" because Claude Desktop snapshots the MCP tool catalog at session start and never refreshes it — tools activated mid-session via `pbir_load_tools` would otherwise be invisible to the model. Clients that honour `tools/list_changed` notifications (Claude Code, Cowork) can opt into `MCP_TOOLS=minimal` to claw back ~13k tokens.
 

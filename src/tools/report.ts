@@ -866,7 +866,7 @@ export function registerReportTools(server: McpServer, ctx: ServerContext): void
   // ============================================================
   server.tool(
     "pbir_set_page_background",
-    "Set the page canvas background and/or wallpaper. Hex color (#0D1117). Transparency 0-100.",
+    "Set the page canvas background. Hex color (#0D1117), transparency 0-100. Wallpaper inputs are rejected because the current Fabric PBIR page schema does not support page.objects.wallpaper.",
     {
       pageId: z.string().optional().describe("Page ID. Auto-resolved when only one page exists."),
       color: z.string().optional().describe("Canvas background color (hex)"),
@@ -878,6 +878,9 @@ export function registerReportTools(server: McpServer, ctx: ServerContext): void
     {"idempotentHint":true,"openWorldHint":false},
     async ({ pageId, color, transparency, wallpaperColor, wallpaperTransparency, clear }) => {
       const _g = requireProject(ctx); if (_g) return _g;
+      if (wallpaperColor !== undefined || wallpaperTransparency !== 0) {
+        return fail("Wallpaper is not supported by the current Fabric PBIR page schema. Use the canvas background color instead.");
+      }
       const r = resolvePageId(ctx.project, pageId);
       if (!r.resolved) return r.errorResponse;
       pageId = r.pageId;
@@ -905,20 +908,8 @@ export function registerReportTools(server: McpServer, ctx: ServerContext): void
       if (color) {
         (page.objects as Record<string, unknown>).background = [{
           properties: {
-            show: { expr: { Literal: { Value: "true" } } },
             color: colorProp(color),
             transparency: intProp(transparency ?? 0),
-          },
-        }];
-      }
-
-      // Wallpaper (area behind canvas)
-      if (wallpaperColor) {
-        (page.objects as Record<string, unknown>).wallpaper = [{
-          properties: {
-            show: { expr: { Literal: { Value: "true" } } },
-            color: colorProp(wallpaperColor),
-            transparency: intProp(wallpaperTransparency ?? 0),
           },
         }];
       }
@@ -932,7 +923,7 @@ export function registerReportTools(server: McpServer, ctx: ServerContext): void
             success: true,
             pageId,
             background: color || undefined,
-            wallpaper: wallpaperColor || undefined,
+            wallpaper: undefined,
           }),
         }],
       };

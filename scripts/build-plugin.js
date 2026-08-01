@@ -65,10 +65,15 @@ execSync(
     "--bundle",
     "--platform=node",
     "--format=cjs",
-    "--target=node18",
+    "--target=node20",
     `--outfile=${bundlePath.replace(/\\/g, "/")}`,
     '--banner:js="#!/usr/bin/env node"',
     "--external:fsevents",
+    // Optional encrypted cross-process cache uses native keytar/libsecret
+    // modules and cannot be embedded in the Cowork single-file bundle. The
+    // default process-only auth path remains bundled; persistent mode fails
+    // closed with setup guidance when this optional package is unavailable.
+    "--external:@azure/identity-cache-persistence",
   ].join(" "),
   { cwd: ROOT, stdio: "inherit" }
 );
@@ -81,7 +86,7 @@ for (const f of fs.readdirSync(SCHEMAS_SRC)) {
   if (f.endsWith(".json")) fs.copyFileSync(path.join(SCHEMAS_SRC, f), path.join(schemaDst, f));
 }
 
-// 6. Copy ALL 16 MCP skills (loaded by guide() at runtime)
+// 6. Copy all MCP skills (loaded by guide() at runtime)
 step("Copying MCP skills");
 copyDir(SKILLS_SRC, path.join(MCP_DIR, "skills"));
 
@@ -96,7 +101,8 @@ rmrf(outFile);
 // path with invalid characters". See scripts/dev-only/zip-plugin.py.
 step(`Packaging ${path.basename(outFile)}`);
 const zipScript = path.join(ROOT, "scripts", "dev-only", "zip-plugin.py");
-execSync(`python "${zipScript}" "${BUILD_DIR}" "${outFile}"`, { stdio: "inherit" });
+const python = process.platform === "win32" ? "python" : "python3";
+execSync(`${python} "${zipScript}" "${BUILD_DIR}" "${outFile}"`, { stdio: "inherit" });
 
 const stat = fs.statSync(outFile);
 step(`Done — ${path.relative(ROOT, outFile)} (${(stat.size / 1024).toFixed(1)} KB)`);

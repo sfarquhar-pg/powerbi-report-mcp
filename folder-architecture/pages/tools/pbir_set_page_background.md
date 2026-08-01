@@ -1,6 +1,6 @@
 # pbir_set_page_background
 
-> Set the page canvas background and/or wallpaper. Hex color (`#0D1117`). Transparency 0-100.
+> Set the page canvas background. Hex color (`#0D1117`). Transparency 0-100.
 
 ## Inputs
 
@@ -9,9 +9,9 @@
 | pageId | string | no (auto-resolved) | — | |
 | color | string | no | — | Canvas background hex |
 | transparency | number (0-100) | no | 0 | |
-| wallpaperColor | string | no | — | Color behind the canvas |
-| wallpaperTransparency | number (0-100) | no | 0 | |
-| clear | boolean | no | — | Remove all background/wallpaper settings |
+| wallpaperColor | string | no | — | Rejected: unsupported by current Fabric PBIR page schema |
+| wallpaperTransparency | number (0-100) | no | 0 | Rejected when non-zero |
+| clear | boolean | no | — | Remove background settings |
 
 ## Output
 
@@ -22,11 +22,10 @@
 ## Behavior
 
 - `idempotentHint: true`
-- Writes PBIR `solid.color` + `transparency` literals into `page.objects.background` and `page.objects.wallpaper`
-- `clear:true` deletes both entries and removes the `objects` map if empty
+- Writes PBIR `solid.color` + `transparency` literals into `page.objects.background`
+- `clear:true` deletes the entry and removes the `objects` map if empty
 
 ## Gotchas
 
-- The wallpaper is the area *behind* the canvas (gutter); the background is
-  the canvas itself.
+- `page.objects.wallpaper` and `background.properties.show` are rejected by the current Fabric PBIR import schema.
 - Transparency is encoded as `${val}D` literal — PBIR-specific format.

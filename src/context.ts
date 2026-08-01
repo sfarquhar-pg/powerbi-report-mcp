@@ -1,4 +1,6 @@
 import type { PbirProject } from "./pbir.js";
+import type { FabricAuthManager } from "./fabricAuth.js";
+import type { FabricApiClient } from "./fabricApi.js";
 import { fail, type MCPResult } from "./helpers/mcpResult.js";
 
 export interface ConnectResult {
@@ -15,6 +17,10 @@ export interface ServerContext {
   connectReport: (targetPath: string) => ConnectResult;
   /** Proxy to PbirProject — throws if no report is connected */
   project: PbirProject;
+  /** Private authentication broker. Access tokens must never enter MCP responses. */
+  fabricAuth: FabricAuthManager;
+  /** Authenticated Fabric/Power BI REST client. */
+  fabricApi: FabricApiClient;
 }
 
 /**

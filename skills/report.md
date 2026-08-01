@@ -18,6 +18,10 @@ Use these patterns to connect to a report, inspect or update report-level settin
 | `pbir_set_filter_pane` | Show/hide and expand/collapse the filter pane (report-wide) |
 | `pbir_set_visual_interaction` | Cross-filter / cross-highlight / disable interactions between visuals on a page |
 | `pbir_manage_extension_measures` | Add/list/remove report-level DAX measures |
+| `pbir_create_project` | Initialize and connect a new local PBIR `.Report` project |
+| `pbir_fabric_auth` | Explicit Fabric login/status/logout with private session reuse |
+| `pbir_fabric_resolve_folder` | Resolve a Fabric folder UUID/name/legacy numeric ID |
+| `pbir_fabric_publish_report` | Publish or update the connected report after explicit confirmation |
 
 ### Tool catalog management
 | Tool | Purpose |
@@ -220,16 +224,16 @@ Pass `reportPath` to inspect a different report without changing the connected o
 
 ## `pbir_load_tools` — on-demand tool catalog
 
-**By default, all 55 tools load at startup.** This matches reality — most MCP clients (Claude Desktop especially) snapshot the tool catalog at session start and don't handle `tools/list_changed`, so lazy activation was dead weight there.
+**By default, all 60 report tools load at startup.** This matches reality — most MCP clients (Claude Desktop especially) snapshot the tool catalog at session start and don't handle `tools/list_changed`, so lazy activation was dead weight there.
 
 ### Minimal mode (opt-in)
-Set `MCP_TOOLS=minimal` before launching the server to load only the 12 core tools at startup. The remaining 42 are activated via `pbir_load_tools`. Saves ~7,500 tokens of schema overhead — worth it only for long Claude Code sessions on a tight context budget.
+Set `MCP_TOOLS=minimal` before launching the server to load only the 14 core tools at startup. The remaining 46 are activated via `pbir_load_tools`.
 
 ### Default tools (minimal mode — always loaded)
 ```
 pbir_set_report, pbir_list_pages, pbir_list_visuals, pbir_create_page, pbir_add_visual, pbir_get_visual,
 pbir_format_visual, pbir_update_visual_bindings, pbir_set_report_theme, pbir_bulk_bind, pbir_model_usage,
-pbir_reload_report
+pbir_reload_report, pbir_lookup_theme_property, pbir_fabric_auth
 ```
 
 ### List what's available (minimal mode only)

@@ -19,6 +19,9 @@ import { registerGuideTool, buildSkillsIndexBanner } from "./tools/guide.js";
 import { registerLayoutGridTool } from "./tools/layoutGrid.js";
 import { registerThemeLookupTool } from "./tools/themeLookup.js";
 import { registerValidateTools } from "./tools/validate.js";
+import { registerFabricTools } from "./tools/fabric.js";
+import { FabricAuthManager } from "./fabricAuth.js";
+import { FabricApiClient } from "./fabricApi.js";
 import { DEFAULT_TOOLS } from "./default-tools.js";
 import { READ_TOOL_SCHEMAS } from "./helpers/outputSchemas.js";
 // Visual calculations parked — not registering until PBI Desktop supports programmatic creation
@@ -30,7 +33,7 @@ import { READ_TOOL_SCHEMAS } from "./helpers/outputSchemas.js";
 // at session start and don't handle `tools/list_changed`, so lazy activation via
 // `pbir_load_tools` is effectively dead weight there.
 //
-// Set MCP_TOOLS=minimal to opt into the tiered mode (12 default tools + 42
+// Set MCP_TOOLS=minimal to opt into the tiered mode (14 default tools + 46
 // on-demand via pbir_load_tools). Worth it only for long Claude Code sessions where
 // the ~7,500 token savings compounds against a tight context budget.
 //
@@ -61,6 +64,10 @@ const ALL_TOOLS: readonly string[] = [
   "pbir_set_page_background",
   "pbir_set_visual_interaction",
   "pbir_manage_extension_measures",
+  "pbir_create_project",
+  "pbir_fabric_auth",
+  "pbir_fabric_resolve_folder",
+  "pbir_fabric_publish_report",
   // Visuals
   "pbir_list_visuals",
   "pbir_get_visual",
@@ -254,7 +261,7 @@ async function main() {
 
   // Determine tool loading mode
   // Default: all tools (matches most clients that don't refresh tool catalog).
-  // Opt-in minimal mode: MCP_TOOLS=minimal (12 default tools, rest via pbir_load_tools).
+  // Opt-in minimal mode: MCP_TOOLS=minimal (14 default tools, rest via pbir_load_tools).
   // Legacy: MCP_TOOLS=all is still accepted and behaves as default.
   const mode = (process.env.MCP_TOOLS || "").toLowerCase();
   const loadMinimal = mode === "minimal";
@@ -288,7 +295,7 @@ async function main() {
   // snake_case tool name → human Title Case for the registerTool `title`
   // field, e.g. pbir_list_pages → "List Pages", pbir_set_report → "Set Report".
   // Uses a small acronym map so common acronyms render correctly.
-  const ACRONYMS = new Set(["dax", "id", "url", "svg", "html", "json", "kpi"]);
+  const ACRONYMS = new Set(["dax", "id", "url", "svg", "html", "json", "kpi", "fabric"]);
   function humanTitle(name: string): string {
     const stripped = name.replace(/^pbir_/, "");
     return stripped.split("_").map((w) => {
@@ -354,10 +361,13 @@ async function main() {
   (server as unknown as { tool: WrappedTool }).tool = _tool;
 
   // Build shared context
+  const fabricAuth = new FabricAuthManager();
   const ctx: ServerContext = {
     getReportPath: () => reportPath,
     connectReport,
     project,
+    fabricAuth,
+    fabricApi: new FabricApiClient(fabricAuth),
   };
 
   // Register tools from modules (filtered by activeTools)
@@ -372,6 +382,7 @@ async function main() {
   registerGuideTool(server, ctx);
   registerLayoutGridTool(server, ctx);
   registerValidateTools(server, ctx);
+  registerFabricTools(server, ctx);
   registerThemeLookupTool(server);
   registerModelUsageTool(server, ctx);
   // registerCalculationTools(server, ctx); // PARKED
@@ -511,7 +522,7 @@ async function main() {
   console.error(`Report path: ${reportPath || "none (use pbir_set_report to connect)"}`);
   console.error(`Version: 0.9.6`);
   console.error(`Tools mode: ${loadAll ? "all" : "minimal"} (${activeTools.size} active, ${deferredTools.size} on-demand)`);
-  console.error(loadAll ? "Tip: Set MCP_TOOLS=minimal to load only the 12 core tools (saves ~7,500 tokens; use pbir_load_tools to activate the rest on demand)." : "Tip: unset MCP_TOOLS or set it to 'all' to load every tool at startup.");
+  console.error(loadAll ? "Tip: Set MCP_TOOLS=minimal to load only the 14 core tools; use pbir_load_tools to activate the rest on demand." : "Tip: unset MCP_TOOLS or set it to 'all' to load every tool at startup.");
   await server.connect(transport);
 }
 

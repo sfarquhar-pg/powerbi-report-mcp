@@ -9,7 +9,7 @@ Thanks for your interest in contributing to the Power BI Report MCP server. This
 
 ### Prerequisites
 
-- **Node.js 18+** and **npm**
+- **Node.js 20+** and **npm**
 - **Power BI Desktop** with PBIR format enabled (File > Options > Preview features > enable "Power BI Report format (PBIR)")
 - A `.pbip` project with a `.Report` folder to test against
 
@@ -180,7 +180,7 @@ const ALL_TOOLS: Record<string, string> = {
 
 Tools are loaded into two tiers:
 
-- **Default (loaded at startup)**: the 12 core workflow tools. Listed in `src/default-tools.ts` — this file is the **single source of truth** for the default set and is read by both the runtime (`src/index.ts`) and the skill-coverage audit (`scripts/audit-skill-coverage.js`).
+- **Default (loaded in minimal mode)**: the 14 core workflow tools. Listed in `src/default-tools.ts` — this file is the **single source of truth** for the default set and is read by both the runtime (`src/index.ts`) and the skill-coverage audit (`scripts/audit-skill-coverage.js`).
 - **On-demand (activated via `pbir_load_tools`)**: everything else. Not counted against session schema overhead unless activated.
 
 **Criteria for default:** the tool is used in more than 50% of typical sessions and is part of the happy-path workflow (connect → orient → create page → add visuals → format → bind → theme → reload). Specialized tools (filters, conditional formatting, bookmarks, theme audit, etc.) stay on-demand.

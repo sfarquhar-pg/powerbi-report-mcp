@@ -7,7 +7,7 @@ Go from zero to a working Power BI report page in 5 minutes using an AI assistan
 
 ## Prerequisites
 
-- **Node.js 18+** installed
+- **Node.js 20+** installed
 - **Power BI Desktop** (April 2025 or later) with PBIR format enabled:
   File > Options > Preview features > **Store reports using PBIR format**
 - **An MCP-compatible client** -- Claude Desktop, Claude Code, Cursor, Cline, GitHub Copilot, or any other MCP client
