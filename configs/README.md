@@ -6,27 +6,27 @@ Ready-to-use config files for each AI client. Copy the one you need, update the 
 
 ## Setup
 
-### PogustGoodhead WSL workspace
+### WSL
 
-Use [`pogustgoodhead-wsl.json`](pogustgoodhead-wsl.json) when the MCP client and
-Node.js run inside WSL. It points the report server at the current Linux
-workspace and starts Microsoft's modeling server through `npx`.
+Use [`wsl.json`](wsl.json) when the MCP client and Node.js run inside WSL. Update
+the placeholder path to your local clone. It starts Microsoft's modeling server
+through `npx`.
 
-The checked-in WSL config sets `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1`
-because this Ubuntu installation currently has no ICU runtime. For full locale
-support, install the distribution's `libicu` package and remove that environment
-override.
+Install your distribution's ICU runtime (`libicu`) when the modeling server
+requires locale support. As a last resort for invariant-only environments, add
+`DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1` locally; it is not enabled in the
+public example because it disables normal locale behavior.
 
 ```bash
-cd /home/samuelfarquharlinux/projects/PogustGoodhead/powerbi-report-mcp
+cd /home/your-user/path/to/powerbi-report-mcp
 npm ci
 npm run build
 ```
 
 For reports kept on the Windows drive, pass their WSL path to
 `pbir_set_report`, for example
-`/mnt/c/PowerBI/PGSurvey/PGSurvey.Report`. Power BI Desktop can continue opening
-the corresponding `C:\PowerBI\PGSurvey\PGSurvey.pbip`; keeping active projects
+`/mnt/c/PowerBI/Sales/Sales.Report`. Power BI Desktop can continue opening
+the corresponding `C:\PowerBI\Sales\Sales.pbip`; keeping active projects
 on `C:` avoids Desktop issues with `\\wsl.localhost` paths.
 
 The modeling server supports three targets:
@@ -36,7 +36,7 @@ The modeling server supports three targets:
 - Power BI Desktop on Windows: if WSL cannot discover Desktop's local Analysis
   Services process, run the MCP client/modeling server on Windows instead. The
   report server may still run through WSL with
-  `wsl.exe node /home/samuelfarquharlinux/projects/PogustGoodhead/powerbi-report-mcp/dist/index.js`.
+  `wsl.exe node /home/your-user/path/to/powerbi-report-mcp/dist/index.js`.
 
 For Fabric automation, add `--authmode=serviceprincipal` and provide
 `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and either `AZURE_CLIENT_SECRET` or the

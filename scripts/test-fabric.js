@@ -67,16 +67,24 @@ function assert(value, message) {
       return new Response(JSON.stringify({ value: [{ id: "folder-uuid", displayName: "Test", workspaceId: "workspace" }] }), { status: 200 });
     }
     if (String(url).includes("/metadata/folders/")) {
-      return new Response(JSON.stringify({ subfolders: [{ id: 151720, displayName: "Test", objectId: "folder-uuid" }] }), { status: 200 });
+      return new Response(JSON.stringify({ subfolders: [{ id: 12345, displayName: "Example Folder", objectId: "folder-uuid" }] }), { status: 200 });
     }
     return new Response(JSON.stringify({}), { status: 200 });
   };
   const api = new FabricApiClient(auth, fetcher);
   const byName = await api.resolveFolder("workspace", "Test");
-  const byLegacy = await api.resolveFolder("workspace", "151720");
+  const byLegacy = await api.resolveFolder("workspace", "12345");
   assert(byName.id === "folder-uuid", "folder resolver accepts exact display name");
-  assert(byLegacy.id === "folder-uuid" && byLegacy.legacyId === 151720, "folder resolver maps legacy numeric subfolderId to UUID");
+  assert(byLegacy.id === "folder-uuid" && byLegacy.legacyId === 12345, "folder resolver maps legacy numeric subfolderId to UUID");
   assert(requests.every((request) => String(request.init.headers.Authorization).startsWith("Bearer ")), "Fabric requests use private authorization headers");
+
+  const customRequests = [];
+  const customApi = new FabricApiClient(auth, async (url) => {
+    customRequests.push(String(url));
+    return new Response(JSON.stringify({ value: [] }), { status: 200 });
+  }, { fabricApiBase: "https://fabric.example.invalid/v1/", powerBiApiBase: "https://powerbi.example.invalid/" });
+  await customApi.listReports("workspace");
+  assert(customRequests[0].startsWith("https://fabric.example.invalid/v1/"), "service base URLs are environment-configurable and trailing-slash safe");
 
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), "pbir-parts-"));
   fs.mkdirSync(path.join(temp, "definition"));

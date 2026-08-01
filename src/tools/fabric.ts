@@ -154,12 +154,13 @@ export function registerFabricTools(server: McpServer, ctx: ServerContext): void
         parts,
       });
       const itemId = String(item.id ?? reportId ?? "");
+      const appBase = (process.env.PBIR_POWERBI_APP_BASE ?? "https://app.powerbi.com").replace(/\/+$/, "");
       return ok({
         action: reportId ? "updated" : "created",
         item,
         folder: resolvedFolder,
         partCount: parts.length,
-        reportUrl: itemId ? `https://app.powerbi.com/groups/${workspaceId}/reports/${itemId}` : undefined,
+        reportUrl: itemId ? `${appBase}/groups/${workspaceId}/reports/${itemId}` : undefined,
       });
     }
   );

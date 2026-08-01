@@ -17,10 +17,21 @@ export interface DefinitionPart {
 }
 
 export class FabricApiClient {
+  private readonly fabricApiBase: string;
+  private readonly powerBiApiBase: string;
+
   constructor(
     private readonly auth: FabricAuthManager,
-    private readonly fetcher: typeof fetch = fetch
-  ) {}
+    private readonly fetcher: typeof fetch = fetch,
+    options: { fabricApiBase?: string; powerBiApiBase?: string } = {}
+  ) {
+    this.fabricApiBase = trimTrailingSlash(
+      options.fabricApiBase ?? process.env.PBIR_FABRIC_API_BASE ?? "https://api.fabric.microsoft.com/v1"
+    );
+    this.powerBiApiBase = trimTrailingSlash(
+      options.powerBiApiBase ?? process.env.PBIR_POWERBI_API_BASE ?? "https://api.powerbi.com"
+    );
+  }
 
   async resolveFolder(workspaceId: string, identifier: string): Promise<FabricFolder> {
     const folders = await this.listFolders(workspaceId);
@@ -44,7 +55,7 @@ export class FabricApiClient {
   async listReports(workspaceId: string): Promise<Array<Record<string, unknown>>> {
     const result = await this.requestJson<{ value?: Array<Record<string, unknown>> }>(
       "fabric",
-      `https://api.fabric.microsoft.com/v1/workspaces/${workspaceId}/items?type=Report&recursive=true`
+      `${this.fabricApiBase}/workspaces/${workspaceId}/items?type=Report&recursive=true`
     );
     return result.value ?? [];
   }
@@ -61,7 +72,7 @@ export class FabricApiClient {
     if (input.reportId) {
       await this.requestJson(
         "fabric",
-        `https://api.fabric.microsoft.com/v1/workspaces/${input.workspaceId}/items/${input.reportId}/updateDefinition`,
+        `${this.fabricApiBase}/workspaces/${input.workspaceId}/items/${input.reportId}/updateDefinition`,
         { method: "POST", body: JSON.stringify({ definition }) }
       );
       return this.getItem(input.workspaceId, input.reportId);
@@ -69,7 +80,7 @@ export class FabricApiClient {
 
     return this.requestJson(
       "fabric",
-      `https://api.fabric.microsoft.com/v1/workspaces/${input.workspaceId}/reports`,
+      `${this.fabricApiBase}/workspaces/${input.workspaceId}/reports`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -85,14 +96,14 @@ export class FabricApiClient {
   async getItem(workspaceId: string, itemId: string): Promise<Record<string, unknown>> {
     return this.requestJson(
       "fabric",
-      `https://api.fabric.microsoft.com/v1/workspaces/${workspaceId}/items/${itemId}`
+      `${this.fabricApiBase}/workspaces/${workspaceId}/items/${itemId}`
     );
   }
 
   private async listFolders(workspaceId: string): Promise<FabricFolder[]> {
     const result = await this.requestJson<{ value?: FabricFolder[] }>(
       "fabric",
-      `https://api.fabric.microsoft.com/v1/workspaces/${workspaceId}/folders`
+      `${this.fabricApiBase}/workspaces/${workspaceId}/folders`
     );
     return result.value ?? [];
   }
@@ -105,7 +116,7 @@ export class FabricApiClient {
         objectId: string;
         parentSubfolderId?: number;
       }>;
-    }>("powerbi", `https://api.powerbi.com/metadata/folders/${workspaceId}/subfolders`);
+    }>("powerbi", `${this.powerBiApiBase}/metadata/folders/${workspaceId}/subfolders`);
     return (result.subfolders ?? []).map((folder) => ({
       id: folder.objectId,
       displayName: folder.displayName,
@@ -147,14 +158,18 @@ export class FabricApiClient {
       const state = await this.requestJson<{
         status?: string;
         error?: unknown;
-      }>(resource, `https://api.fabric.microsoft.com/v1/operations/${operationId}`);
+      }>(resource, `${this.fabricApiBase}/operations/${operationId}`);
       if (state.status === "Failed") throw new Error(`Fabric operation failed: ${JSON.stringify(state.error)}`);
       if (state.status === "Succeeded") {
-        return this.requestJson<T>(resource, `https://api.fabric.microsoft.com/v1/operations/${operationId}/result`);
+        return this.requestJson<T>(resource, `${this.fabricApiBase}/operations/${operationId}/result`);
       }
     }
     throw new Error(`Fabric operation ${operationId} did not finish within 120 seconds.`);
   }
+}
+
+function trimTrailingSlash(value: string): string {
+  return value.replace(/\/+$/, "");
 }
 
 export function collectReportDefinitionParts(reportPath: string): DefinitionPart[] {

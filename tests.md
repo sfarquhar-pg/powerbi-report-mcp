@@ -8,7 +8,7 @@ Date: 2026-04-05 | Version: 0.4.8
 
 ## Setup
 
-- Report: `C:\Users\jonathan\OneDrive\PowerBI\PowerBI\mcp\training.Report`
+- Report: `C:\PowerBI\Examples\training.Report`
 - Test page created: `test-suite-renamed` (pageId: `8c02e95645e9cbd11286`)
 - Page deleted at end of suite as final cleanup test
 

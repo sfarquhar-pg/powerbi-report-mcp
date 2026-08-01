@@ -45,6 +45,8 @@ export class FabricAuthManager {
   private readonly cacheMode: FabricCacheMode;
   private readonly recordPath: string;
   private readonly credentialFactory: CredentialFactory;
+  private readonly fabricScope: string;
+  private readonly powerBiScope: string;
   private authenticationRecord?: AuthenticationRecord;
   private tokens = new Map<FabricResource, AccessToken>();
   private silentCredential?: CredentialLike;
@@ -53,15 +55,20 @@ export class FabricAuthManager {
     cacheMode?: FabricCacheMode;
     recordPath?: string;
     credentialFactory?: CredentialFactory;
+    fabricScope?: string;
+    powerBiScope?: string;
   } = {}) {
     this.cacheMode = options.cacheMode ??
       (process.env.PBIR_FABRIC_TOKEN_CACHE?.toLowerCase() === "persistent" ? "persistent" : "memory");
     this.recordPath = options.recordPath ?? defaultRecordPath();
+    this.fabricScope = options.fabricScope ?? process.env.PBIR_FABRIC_SCOPE ?? FABRIC_SCOPE;
+    this.powerBiScope = options.powerBiScope ?? process.env.PBIR_POWERBI_SCOPE ?? POWERBI_SCOPE;
 
     this.credentialFactory = options.credentialFactory ?? ((credentialOptions) =>
       new InteractiveBrowserCredential({
         tenantId: process.env.AZURE_TENANT_ID,
         clientId: process.env.AZURE_CLIENT_ID,
+        authorityHost: process.env.AZURE_AUTHORITY_HOST,
         // The initial account chooser may land in a B2B/resource tenant. After
         // login every request is pinned to authenticationRecord.tenantId; no
         // MCP tool accepts an arbitrary tenant override.
@@ -122,9 +129,9 @@ export class FabricAuthManager {
       // authenticate() is the only operation allowed to open a browser. The
       // credential itself has automatic interaction disabled for later calls.
       const credential = this.createCredential(true);
-      const record = await credential.authenticate(FABRIC_SCOPE);
+      const record = await credential.authenticate(this.fabricScope);
       if (!record) throw new Error("Microsoft Entra authentication returned no account record.");
-      await credential.authenticate(POWERBI_SCOPE, { tenantId: record.tenantId });
+      await credential.authenticate(this.powerBiScope, { tenantId: record.tenantId });
       this.authenticationRecord = record;
       await this.acquireBoth(credential);
       if (this.cacheMode === "persistent") this.writeAuthenticationRecord(record);
@@ -165,7 +172,7 @@ export class FabricAuthManager {
       try {
         const credential = this.silentCredential;
         const token = await credential.getToken(
-          resource === "fabric" ? FABRIC_SCOPE : POWERBI_SCOPE,
+          resource === "fabric" ? this.fabricScope : this.powerBiScope,
           { tenantId: this.authenticationRecord.tenantId }
         );
         if (!token) throw new Error("No access token returned.");
@@ -181,7 +188,7 @@ export class FabricAuthManager {
         await this.ensurePersistencePlugin();
         const credential = this.createCredential(true);
         const token = await credential.getToken(
-          resource === "fabric" ? FABRIC_SCOPE : POWERBI_SCOPE,
+          resource === "fabric" ? this.fabricScope : this.powerBiScope,
           { tenantId: this.authenticationRecord.tenantId }
         );
         if (!token) throw new Error("No access token returned.");
@@ -221,8 +228,8 @@ export class FabricAuthManager {
 
   private async acquireBoth(credential: CredentialLike): Promise<void> {
     const tenantId = this.authenticationRecord?.tenantId;
-    const fabric = await credential.getToken(FABRIC_SCOPE, { tenantId });
-    const powerbi = await credential.getToken(POWERBI_SCOPE, { tenantId });
+    const fabric = await credential.getToken(this.fabricScope, { tenantId });
+    const powerbi = await credential.getToken(this.powerBiScope, { tenantId });
     if (!fabric || !powerbi) throw new Error("Microsoft Entra did not return both required access tokens.");
     this.tokens.set("fabric", fabric);
     this.tokens.set("powerbi", powerbi);

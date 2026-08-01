@@ -4,7 +4,7 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/home/samuelfarquharlinux/projects/PogustGoodhead/powerbi-report-mcp/dist/index.js"
+        "/home/your-user/path/to/powerbi-report-mcp/dist/index.js"
       ]
     },
     "powerbi-modeling-mcp": {
@@ -14,10 +14,7 @@
         "-y",
         "@microsoft/powerbi-modeling-mcp@latest",
         "--start"
-      ],
-      "env": {
-        "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT": "1"
-      }
+      ]
     }
   }
 }

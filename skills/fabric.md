@@ -34,6 +34,23 @@ Persistent mode uses Azure Identity's encrypted OS cache: Windows DPAPI, macOS K
 
 The single-file Cowork plugin uses process-only caching because native OS keyring modules cannot be bundled. Use the normal npm/local server installation for persistent mode.
 
+## Cloud and environment configuration
+
+Defaults target Microsoft Fabric and Power BI in the public cloud. Deployments with different approved endpoints can configure the MCP process without changing report code:
+
+| Environment variable | Default |
+|---|---|
+| `AZURE_TENANT_ID` | Account-selected tenant |
+| `AZURE_CLIENT_ID` | Azure Identity developer sign-on application |
+| `AZURE_AUTHORITY_HOST` | Azure public cloud authority |
+| `PBIR_FABRIC_SCOPE` | `https://api.fabric.microsoft.com/.default` |
+| `PBIR_POWERBI_SCOPE` | `https://analysis.windows.net/powerbi/api/.default` |
+| `PBIR_FABRIC_API_BASE` | `https://api.fabric.microsoft.com/v1` |
+| `PBIR_POWERBI_API_BASE` | `https://api.powerbi.com` |
+| `PBIR_POWERBI_APP_BASE` | `https://app.powerbi.com` |
+
+These values are trusted administrator/process configuration, not MCP tool inputs. Availability of Fabric APIs still depends on Microsoft support in the selected cloud and tenant policy.
+
 ## Create a thin report
 
 ```json
@@ -50,7 +67,7 @@ The single-file Cowork plugin uses process-only caching because native OS keyrin
 ```json
 {
   "workspaceId": "00000000-0000-0000-0000-000000000000",
-  "folder": "151720"
+  "folder": "12345"
 }
 ```
 
