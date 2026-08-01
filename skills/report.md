@@ -20,6 +20,8 @@ Use these patterns to connect to a report, inspect or update report-level settin
 | `pbir_manage_extension_measures` | Add/list/remove report-level DAX measures |
 | `pbir_create_project` | Initialize and connect a new local PBIR `.Report` project |
 | `pbir_fabric_auth` | Explicit Fabric login/status/logout with private session reuse |
+| `pbir_fabric_audit_access` | Audit effective report/model/workspace readiness |
+| `pbir_fabric_review_errors` | Review live report components for broken model references |
 | `pbir_fabric_resolve_folder` | Resolve a Fabric folder UUID/name/legacy numeric ID |
 | `pbir_fabric_publish_report` | Publish or update the connected report after explicit confirmation |
 
@@ -224,10 +226,10 @@ Pass `reportPath` to inspect a different report without changing the connected o
 
 ## `pbir_load_tools` — on-demand tool catalog
 
-**By default, all 60 report tools load at startup.** This matches reality — most MCP clients (Claude Desktop especially) snapshot the tool catalog at session start and don't handle `tools/list_changed`, so lazy activation was dead weight there.
+**By default, all 62 report tools load at startup.** This matches reality — most MCP clients (Claude Desktop especially) snapshot the tool catalog at session start and don't handle `tools/list_changed`, so lazy activation was dead weight there.
 
 ### Minimal mode (opt-in)
-Set `MCP_TOOLS=minimal` before launching the server to load only the 14 core tools at startup. The remaining 46 are activated via `pbir_load_tools`.
+Set `MCP_TOOLS=minimal` before launching the server to load only the 14 core tools at startup. The remaining 48 are activated via `pbir_load_tools`.
 
 ### Default tools (minimal mode — always loaded)
 ```

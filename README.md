@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node.js">
   <img src="https://img.shields.io/badge/MCP-1.12-purple.svg" alt="MCP SDK">
   <img src="https://img.shields.io/badge/Power%20BI-PBIR-yellow.svg" alt="PBIR Format">
-  <img src="https://img.shields.io/badge/tools-60-orange.svg" alt="60 Tools">
+  <img src="https://img.shields.io/badge/tools-62-orange.svg" alt="62 Tools">
 </p>
 
 <p align="center">
@@ -159,7 +159,7 @@ claude mcp add powerbi-report-mcp node C:\path\to\powerbi-report-mcp\dist\index.
 
 #### Optional: opt into minimal tool loading
 
-For long Claude Code / Cowork sessions where catalog tokens matter, set `MCP_TOOLS=minimal` to load only the 14 default tools at startup (the remaining 46 activate on demand via `pbir_load_tools`):
+For long Claude Code / Cowork sessions where catalog tokens matter, set `MCP_TOOLS=minimal` to load only the 14 default tools at startup (the remaining 48 activate on demand via `pbir_load_tools`):
 
 ```jsonc
 {
@@ -177,7 +177,7 @@ For long Claude Code / Cowork sessions where catalog tokens matter, set `MCP_TOO
 
 Trade-off summary (full breakdown in [Smart Tool Loading](#smart-tool-loading) below):
 
-- **Default (load-all)** — All 60 report tools available immediately. Best for unpredictable/exploratory sessions and clients that snapshot the tool list at startup.
+- **Default (load-all)** — All 62 report tools available immediately. Best for unpredictable/exploratory sessions and clients that snapshot the tool list at startup.
 - **`MCP_TOOLS=minimal`** — 14 default tools at startup; others activatable via `pbir_load_tools`. Best for known-narrow workflows. Requires MCP client support for `notifications/tools/list_changed` to surface activated tools mid-session — Claude Code/Desktop don't refresh; Cowork may; verify before relying.
 
 ### 3b. Cowork plugin
@@ -210,6 +210,8 @@ Open the `.pbip` file — or if already open, press `Ctrl+Shift+F5` to refresh.
 
 ```text
 pbir_fabric_auth({ operation: "login" })
+pbir_fabric_audit_access({ workspaceId: "...", reportId: "..." })
+pbir_fabric_review_errors({ workspaceId: "...", reportId: "..." })
 pbir_fabric_resolve_folder({ workspaceId: "...", folder: "Test" })
 pbir_fabric_publish_report({ workspaceId: "...", folder: "Test", confirm: true })
 ```
@@ -232,7 +234,7 @@ If the path is invalid the server logs to stderr and continues running unbound (
 
 ## Smart Tool Loading
 
-By default all **60 report tools load at startup** — this is the most compatible configuration, and what you want for Claude Desktop and most other MCP clients whose tool catalog is a snapshot taken at session start.
+By default all **62 report tools load at startup** — this is the most compatible configuration, and what you want for Claude Desktop and most other MCP clients whose tool catalog is a snapshot taken at session start.
 
 For token-sensitive setups (e.g. Claude Code with large prompt budgets on dev machines), you can opt into the **minimal** mode — only **14 core tools** load at startup, and the LLM activates more on-demand via `pbir_load_tools`:
 
@@ -265,9 +267,9 @@ graph TD
 
 | Mode | Tools at Startup | Token Overhead | Use Case |
 |------|------------------|----------------|----------|
-| `default` | 60 + `pbir_load_tools` | varies by client | Claude Desktop, most clients, first-time users |
+| `default` | 62 + `pbir_load_tools` | varies by client | Claude Desktop, most clients, first-time users |
 | `MCP_TOOLS=minimal` | 14 + `pbir_load_tools` | reduced | Claude Code / clients that refresh the tool list mid-session |
-| `MCP_TOOLS=all` *(legacy alias)* | 60 + `pbir_load_tools` | varies by client | Same as default; kept for backward-compat |
+| `MCP_TOOLS=all` *(legacy alias)* | 62 + `pbir_load_tools` | varies by client | Same as default; kept for backward-compat |
 
 > Default is "load everything" because Claude Desktop snapshots the MCP tool catalog at session start and never refreshes it — tools activated mid-session via `pbir_load_tools` would otherwise be invisible to the model. Clients that honour `tools/list_changed` notifications (Claude Code, Cowork) can opt into `MCP_TOOLS=minimal` to claw back ~13k tokens.
 

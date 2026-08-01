@@ -152,6 +152,14 @@ const fabricFolderSchema = z
   })
   .passthrough();
 
+const fabricAuditSchema = z
+  .object({ ...envelope, audit: z.object({}).passthrough().optional() })
+  .passthrough();
+
+const fabricReviewSchema = z
+  .object({ ...envelope, review: z.object({}).passthrough().optional() })
+  .passthrough();
+
 const listFiltersSchema = z
   .object({
     ...envelope,
@@ -358,6 +366,8 @@ export const READ_TOOL_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
   pbir_get_visual: getVisualSchema.shape,
   pbir_get_report: getReportSchema.shape,
   pbir_fabric_auth: fabricAuthSchema.shape,
+  pbir_fabric_audit_access: fabricAuditSchema.shape,
+  pbir_fabric_review_errors: fabricReviewSchema.shape,
   pbir_fabric_resolve_folder: fabricFolderSchema.shape,
   pbir_list_filters: listFiltersSchema.shape,
   pbir_list_bookmarks: listBookmarksSchema.shape,

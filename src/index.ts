@@ -33,7 +33,7 @@ import { READ_TOOL_SCHEMAS } from "./helpers/outputSchemas.js";
 // at session start and don't handle `tools/list_changed`, so lazy activation via
 // `pbir_load_tools` is effectively dead weight there.
 //
-// Set MCP_TOOLS=minimal to opt into the tiered mode (14 default tools + 46
+// Set MCP_TOOLS=minimal to opt into the tiered mode (14 default tools + 48
 // on-demand via pbir_load_tools). Worth it only for long Claude Code sessions where
 // the ~7,500 token savings compounds against a tight context budget.
 //
@@ -66,6 +66,8 @@ const ALL_TOOLS: readonly string[] = [
   "pbir_manage_extension_measures",
   "pbir_create_project",
   "pbir_fabric_auth",
+  "pbir_fabric_audit_access",
+  "pbir_fabric_review_errors",
   "pbir_fabric_resolve_folder",
   "pbir_fabric_publish_report",
   // Visuals

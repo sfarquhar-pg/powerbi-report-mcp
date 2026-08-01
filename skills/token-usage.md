@@ -75,11 +75,11 @@ Examples: `out_of_bounds_right`, `wrong_horizontal_gap`, `binding_validation_fai
 
 ## Fixed session overhead (paid once)
 
-**The default is now to load all 60 report tools at startup.** This matches reality — most MCP clients snapshot the catalog. Set `MCP_TOOLS=minimal` to opt into 14 default tools + 46 on-demand via `pbir_load_tools`.
+**The default is now to load all 62 report tools at startup.** This matches reality — most MCP clients snapshot the catalog. Set `MCP_TOOLS=minimal` to opt into 14 default tools + 48 on-demand via `pbir_load_tools`.
 
 | Item | Tokens | Notes |
 |---|---|---|
-| 60 report tool schemas (default mode) | Measure after release | All tools ready to call |
+| 62 report tool schemas (default mode) | Measure after release | All tools ready to call |
 | 14 tool schemas (minimal mode) | Measure after release | Opt-in via `MCP_TOOLS=minimal` |
 | `pbir_add_visual` schema alone | ~2,250 | Largest single schema |
 | `pbir_set_report` | ~40 | Connect once per session |
@@ -106,11 +106,11 @@ pbir_reload_report        pbir_lookup_theme_property pbir_fabric_auth
 
 These cover the entire happy-path: connect → orient → create page → add visuals → format → bind → theme → reload. Almost every report build can be done with this set alone. Single source of truth: `src/default-tools.ts`.
 
-In default mode, all 60 report tools are loaded. In `MCP_TOOLS=minimal` mode, only these 14 load and the remaining 46 are activated via `pbir_load_tools`.
+In default mode, all 62 report tools are loaded. In `MCP_TOOLS=minimal` mode, only these 14 load and the remaining 48 are activated via `pbir_load_tools`.
 
 ## On-demand tools (minimal mode only, via `pbir_load_tools`)
 
-46 additional tools. Activate them when you need them:
+48 additional tools. Activate them when you need them:
 
 ```json
 { "tools": ["pbir_set_visual_sort", "pbir_set_conditional_format", "pbir_duplicate_page"] }

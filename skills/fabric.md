@@ -10,6 +10,8 @@ Local PBIR editing does not require Microsoft authentication. Fabric authenticat
 |---|---|
 | `pbir_create_project` | Initialize a local `.Report`; optionally bind a published semantic model ID |
 | `pbir_fabric_auth` | Check status, explicitly log in, or clear the MCP-held session |
+| `pbir_fabric_audit_access` | Audit workspace/report/model readiness and return access directives |
+| `pbir_fabric_review_errors` | Check live PBIR components against the bound semantic-model runtime |
 | `pbir_fabric_resolve_folder` | Resolve a folder UUID, exact name, or legacy numeric `subfolderId` |
 | `pbir_fabric_publish_report` | Create or update a Fabric report from the connected PBIR definition |
 
@@ -56,11 +58,44 @@ These values are trusted administrator/process configuration, not MCP tool input
 ```json
 {
   "path": "/absolute/path/Sales Report.Report",
-  "semanticModelId": "00000000-0000-0000-0000-000000000000"
+  "semanticModelId": "00000000-0000-0000-0000-000000000000",
+  "workspaceId": "00000000-0000-0000-0000-000000000000",
+  "semanticModelWorkspaceId": "00000000-0000-0000-0000-000000000000"
 }
 ```
 
-`pbir_create_project` refuses to overwrite a non-empty directory and connects the new report.
+`pbir_create_project` refuses to overwrite a non-empty directory and connects the new report. When `workspaceId` is supplied, it runs access preflight before creating files. Omit service IDs for a fully offline local project.
+
+## Access audit profiles
+
+`pbir_fabric_audit_access` reports `ready`, `blocked`, or `unknown` for:
+
+- `viewer`: report/model Read.
+- `builder`: semantic-model Read + Build/query.
+- `reportEditor`: report ReadWrite + model Build.
+- `publisher`: destination Contributor-or-higher + model Build; license/tenant policy may still apply.
+- `modelEditor`: semantic-model ReadWrite.
+
+Checks distinguish `verified` capability probes, `declared` direct ACLs, and `unknown` Entra-group inheritance. A missing direct ACL is never treated as a denial when group inheritance cannot be expanded.
+
+Default access target:
+
+- View only: report Read + model Read.
+- Build/edit a thin report: model Build + report ReadWrite or destination Contributor.
+- Publish: destination Contributor (or higher), model Build, and a qualifying license where required.
+- Edit the model: model ReadWrite or Contributor (or higher) in its workspace.
+- Manage permissions: usually Member/Admin or owner/Reshare rights.
+
+## Review live errors
+
+```json
+{
+  "workspaceId": "00000000-0000-0000-0000-000000000000",
+  "reportId": "00000000-0000-0000-0000-000000000000"
+}
+```
+
+`pbir_fabric_review_errors` downloads the live PBIR definition, extracts page/visual field references, verifies Build capability, and compiles `TOPN(0)` probes. It returns no semantic-model rows. It differentiates missing Build permission, missing report references, and cases where TMDL metadata advertises an object that the live query runtime cannot resolve.
 
 ## Resolve and publish
 

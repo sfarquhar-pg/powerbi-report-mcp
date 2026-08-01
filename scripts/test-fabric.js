@@ -5,6 +5,7 @@ const path = require("path");
 
 const { FabricAuthManager } = require("../dist/fabricAuth.js");
 const { FabricApiClient, collectReportDefinitionParts } = require("../dist/fabricApi.js");
+const { auditFabricPermissions, reviewLiveReportErrors, extractReportReferences } = require("../dist/fabricAudit.js");
 
 const failures = [];
 function assert(value, message) {
@@ -98,6 +99,59 @@ function assert(value, message) {
   assert(fabricToolsSource.includes("confirmationRequired: true"), "remote publishing has an explicit confirmation gate");
   assert(fabricToolsSource.includes("Refusing to overwrite non-empty directory"), "project creation refuses to overwrite existing content");
   assert(!fabricToolsSource.includes("structuredContent: token"), "Fabric tools do not place tokens in structured responses");
+
+  const zeroId = "00000000-0000-0000-0000-000000000000";
+  const permissionApi = {
+    probe: async (operation) => {
+      try { return { ok: true, value: await operation() }; }
+      catch (error) { return { ok: false, status: error.status, error: error.message }; }
+    },
+    getPowerBiWorkspace: async () => ({ id: zeroId, name: "Example Workspace" }),
+    getPowerBiReport: async () => ({ id: zeroId, name: "Example Report", datasetId: zeroId, isOwnedByMe: true }),
+    getReportDefinition: async () => ({ definition: { parts: [] } }),
+    getPowerBiDataset: async () => ({ id: zeroId, name: "Example Model" }),
+    executeDatasetQuery: async () => ({ results: [] }),
+    getSemanticModelDefinition: async () => ({ definition: { parts: [] } }),
+    listPowerBiDatasetUsers: async () => { const error = new Error("Fabric API 403: ACL enumeration denied"); error.status = 403; throw error; },
+    listPowerBiWorkspaceUsers: async () => [{ identifier: "user@example.test", groupUserAccessRight: "Contributor" }],
+  };
+  const accessAudit = await auditFabricPermissions(permissionApi, {
+    account: "user@example.test", workspaceId: zeroId, reportId: zeroId,
+  });
+  assert(accessAudit.profiles.builder === "ready", "permission audit verifies semantic-model Build through a capability probe");
+  assert(accessAudit.profiles.reportEditor === "ready", "permission audit verifies report editing through definition access");
+  assert(accessAudit.profiles.publisher === "ready", "permission audit reports Contributor publishing baseline as ready");
+  assert(accessAudit.checks.find((check) => check.id === "semanticModel.directAccess").status === "unknown", "ACL enumeration failure stays unknown rather than becoming a false permission denial");
+
+  const encode = (value) => Buffer.from(JSON.stringify(value), "utf8").toString("base64");
+  const textEncode = (value) => Buffer.from(value, "utf8").toString("base64");
+  const reportParts = [
+    { path: "definition/pages/page1/page.json", payload: encode({ displayName: "Overview" }), payloadType: "InlineBase64" },
+    { path: "definition/pages/page1/visuals/visual1/visual.json", payload: encode({
+      name: "visual1",
+      visual: { visualType: "card", query: { queryState: { Values: { projections: [{ field: { Column: { Expression: { SourceRef: { Entity: "ExampleTable" } }, Property: "ExampleField" } } }] } } } },
+    }), payloadType: "InlineBase64" },
+  ];
+  const references = extractReportReferences(reportParts);
+  assert(references.length === 1 && references[0].table === "ExampleTable", "live error review extracts visual field references from PBIR parts");
+
+  const reviewApi = {
+    getPowerBiReport: async () => ({ datasetId: zeroId }),
+    getReportDefinition: async () => ({ definition: { parts: reportParts } }),
+    getSemanticModelDefinition: async () => ({ definition: { parts: [{ path: "definition/tables/ExampleTable.tmdl", payload: textEncode("table ExampleTable\n\tcolumn ExampleField\n\t\tdataType: string"), payloadType: "InlineBase64" }] } }),
+    probe: async (operation) => {
+      try { return { ok: true, value: await operation() }; }
+      catch (error) { return { ok: false, status: 400, error: error.message }; }
+    },
+    executeDatasetQuery: async (_workspace, _model, query) => {
+      if (query.includes("__pbir_permission_check")) return { results: [] };
+      const error = new Error("Fabric API 400: Cannot find table 'ExampleTable'.");
+      throw error;
+    },
+  };
+  const liveReview = await reviewLiveReportErrors(reviewApi, { workspaceId: zeroId, reportId: zeroId });
+  assert(liveReview.issues[0].code === "model_runtime_metadata_mismatch", "live review distinguishes model runtime/TMDL mismatch from RBAC failure");
+  assert(liveReview.issues[0].components[0].pageName === "Overview", "live review identifies affected page and visual component");
 
   if (failures.length) process.exit(1);
   console.log("\nOK: Fabric auth/API safety regressions passed.");

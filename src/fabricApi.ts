@@ -16,6 +16,13 @@ export interface DefinitionPart {
   payloadType: "InlineBase64";
 }
 
+export interface ApiProbe<T = unknown> {
+  ok: boolean;
+  status?: number;
+  value?: T;
+  error?: string;
+}
+
 export class FabricApiClient {
   private readonly fabricApiBase: string;
   private readonly powerBiApiBase: string;
@@ -98,6 +105,84 @@ export class FabricApiClient {
       "fabric",
       `${this.fabricApiBase}/workspaces/${workspaceId}/items/${itemId}`
     );
+  }
+
+  async getPowerBiWorkspace(workspaceId: string): Promise<Record<string, unknown>> {
+    return this.requestJson("powerbi", `${this.powerBiApiBase}/v1.0/myorg/groups/${workspaceId}`);
+  }
+
+  async getPowerBiReport(workspaceId: string, reportId: string): Promise<Record<string, unknown>> {
+    return this.requestJson("powerbi", `${this.powerBiApiBase}/v1.0/myorg/groups/${workspaceId}/reports/${reportId}`);
+  }
+
+  async getPowerBiDataset(workspaceId: string, semanticModelId: string): Promise<Record<string, unknown>> {
+    return this.requestJson("powerbi", `${this.powerBiApiBase}/v1.0/myorg/groups/${workspaceId}/datasets/${semanticModelId}`);
+  }
+
+  async listPowerBiWorkspaceUsers(workspaceId: string): Promise<Array<Record<string, unknown>>> {
+    const result = await this.requestJson<{ value?: Array<Record<string, unknown>> }>(
+      "powerbi",
+      `${this.powerBiApiBase}/v1.0/myorg/groups/${workspaceId}/users`
+    );
+    return result.value ?? [];
+  }
+
+  async listPowerBiDatasetUsers(
+    workspaceId: string,
+    semanticModelId: string
+  ): Promise<Array<Record<string, unknown>>> {
+    const result = await this.requestJson<{ value?: Array<Record<string, unknown>> }>(
+      "powerbi",
+      `${this.powerBiApiBase}/v1.0/myorg/groups/${workspaceId}/datasets/${semanticModelId}/users`
+    );
+    return result.value ?? [];
+  }
+
+  async executeDatasetQuery(
+    workspaceId: string,
+    semanticModelId: string,
+    query: string
+  ): Promise<Record<string, unknown>> {
+    return this.requestJson(
+      "powerbi",
+      `${this.powerBiApiBase}/v1.0/myorg/groups/${workspaceId}/datasets/${semanticModelId}/executeQueries`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          queries: [{ query }],
+          serializerSettings: { includeNulls: false },
+        }),
+      }
+    );
+  }
+
+  async getReportDefinition(workspaceId: string, reportId: string): Promise<Record<string, unknown>> {
+    return this.requestJson(
+      "fabric",
+      `${this.fabricApiBase}/workspaces/${workspaceId}/reports/${reportId}/getDefinition?format=PBIR`,
+      { method: "POST" }
+    );
+  }
+
+  async getSemanticModelDefinition(
+    workspaceId: string,
+    semanticModelId: string
+  ): Promise<Record<string, unknown>> {
+    return this.requestJson(
+      "fabric",
+      `${this.fabricApiBase}/workspaces/${workspaceId}/semanticModels/${semanticModelId}/getDefinition?format=TMDL`,
+      { method: "POST" }
+    );
+  }
+
+  async probe<T>(operation: () => Promise<T>): Promise<ApiProbe<T>> {
+    try {
+      return { ok: true, value: await operation() };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const status = /Fabric API (\d{3})/.exec(message)?.[1];
+      return { ok: false, status: status ? Number(status) : undefined, error: message };
+    }
   }
 
   private async listFolders(workspaceId: string): Promise<FabricFolder[]> {

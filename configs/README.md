@@ -81,7 +81,7 @@ Add the report path as a second argument to skip the `pbir_set_report` step:
 
 ## Optional: Load all tools at startup
 
-Add an `env` block to load all 60 report tools instead of the minimal 14:
+Add an `env` block to load all 62 report tools instead of the minimal 14:
 
 ```json
 "powerbi-report-mcp": {
