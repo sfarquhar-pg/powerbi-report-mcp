@@ -28,3 +28,5 @@ cowork-plugin-build/
 
 # Eval per-run report (regenerated each `npm run eval`); baseline.md is committed
 evals/last-report.md
+
+.Identifier

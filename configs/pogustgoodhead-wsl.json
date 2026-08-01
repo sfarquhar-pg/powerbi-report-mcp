@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "powerbi-report-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/home/samuelfarquharlinux/projects/PogustGoodhead/powerbi-report-mcp/dist/index.js"
+      ]
+    },
+    "powerbi-modeling-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@microsoft/powerbi-modeling-mcp@latest",
+        "--start"
+      ],
+      "env": {
+        "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT": "1"
+      }
+    }
+  }
+}

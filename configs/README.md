@@ -6,6 +6,44 @@ Ready-to-use config files for each AI client. Copy the one you need, update the 
 
 ## Setup
 
+### PogustGoodhead WSL workspace
+
+Use [`pogustgoodhead-wsl.json`](pogustgoodhead-wsl.json) when the MCP client and
+Node.js run inside WSL. It points the report server at the current Linux
+workspace and starts Microsoft's modeling server through `npx`.
+
+The checked-in WSL config sets `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1`
+because this Ubuntu installation currently has no ICU runtime. For full locale
+support, install the distribution's `libicu` package and remove that environment
+override.
+
+```bash
+cd /home/samuelfarquharlinux/projects/PogustGoodhead/powerbi-report-mcp
+npm ci
+npm run build
+```
+
+For reports kept on the Windows drive, pass their WSL path to
+`pbir_set_report`, for example
+`/mnt/c/PowerBI/PGSurvey/PGSurvey.Report`. Power BI Desktop can continue opening
+the corresponding `C:\PowerBI\PGSurvey\PGSurvey.pbip`; keeping active projects
+on `C:` avoids Desktop issues with `\\wsl.localhost` paths.
+
+The modeling server supports three targets:
+
+- Fabric semantic model: run the WSL config and use interactive Entra auth.
+- PBIP/TMDL files: run the WSL config and provide the WSL path.
+- Power BI Desktop on Windows: if WSL cannot discover Desktop's local Analysis
+  Services process, run the MCP client/modeling server on Windows instead. The
+  report server may still run through WSL with
+  `wsl.exe node /home/samuelfarquharlinux/projects/PogustGoodhead/powerbi-report-mcp/dist/index.js`.
+
+For Fabric automation, add `--authmode=serviceprincipal` and provide
+`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and either `AZURE_CLIENT_SECRET` or the
+certificate variables in the MCP client's environment. Do not commit those
+values. Interactive authentication is the default; set `AZURE_TENANT_ID` when
+the account must be constrained to a specific tenant.
+
 **1. Update the paths** in your chosen config file:
 - Replace `C:\\path\\to\\powerbi-report-mcp` with the actual report-mcp install location
 - Replace `C:\\path\\to\\powerbi-modeling-mcp` with the actual modeling-mcp install location (the VS Code extension installs to `%USERPROFILE%\.vscode\extensions\analysis-services.powerbi-modeling-mcp-*\`)
