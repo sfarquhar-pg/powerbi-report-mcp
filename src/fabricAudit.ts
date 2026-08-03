@@ -308,16 +308,16 @@ export async function reviewLiveReportErrors(
       const metadataHasTable = inventory?.tables.has(table);
       if (!tableProbe.ok) {
         issues.push({
-          code: metadataHasTable ? "model_runtime_metadata_mismatch" : "missing_table_reference",
-          severity: "error",
+          code: metadataHasTable ? "execute_queries_probe_inconclusive" : "missing_table_reference",
+          severity: metadataHasTable ? "warning" : "error",
           table,
           fields,
           message: metadataHasTable
-            ? `The semantic-model definition contains '${table}', but the live query runtime cannot resolve it.`
+            ? `The semantic-model definition contains '${table}', but the Execute Queries REST probe could not resolve it. This does not prove the Power BI visual is broken; live visual rendering is stronger evidence.`
             : `The live semantic model cannot resolve table '${table}'.`,
           components: dedupeComponents(tableReferences),
           directive: metadataHasTable
-            ? "Ask the semantic-model owner to verify the deployed model/runtime state, refresh or republish the semantic model, and confirm the report is bound to the intended model/version."
+            ? "Open the affected live report page and verify the visual renders and filters correctly. If it does, retain this as a warning and record the REST-probe limitation. If it does not, verify model publication/refresh and report binding."
             : "Correct the PBIR table binding or publish the missing table to the semantic model.",
           technical: summarizeError(tableProbe.error ?? probe.error),
         });
@@ -365,7 +365,7 @@ export async function reviewLiveReportErrors(
   }
 
   return {
-    ok: issues.length === 0,
+    ok: !issues.some((issue) => issue.severity === "error"),
     workspaceId: input.workspaceId,
     reportId: input.reportId,
     semanticModelId,

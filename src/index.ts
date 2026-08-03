@@ -24,6 +24,10 @@ import { FabricAuthManager } from "./fabricAuth.js";
 import { FabricApiClient } from "./fabricApi.js";
 import { DEFAULT_TOOLS } from "./default-tools.js";
 import { READ_TOOL_SCHEMAS } from "./helpers/outputSchemas.js";
+import {
+  recoverInterruptedReportReplacement,
+  recoverInterruptedReportReplacements,
+} from "./reportDefinition.js";
 // Visual calculations parked — not registering until PBI Desktop supports programmatic creation
 // import { registerCalculationTools } from "./tools/calculations.js";
 
@@ -67,6 +71,8 @@ const ALL_TOOLS: readonly string[] = [
   "pbir_create_project",
   "pbir_fabric_auth",
   "pbir_fabric_audit_access",
+  "pbir_fabric_diff_report",
+  "pbir_fabric_pull_report",
   "pbir_fabric_review_errors",
   "pbir_fabric_resolve_folder",
   "pbir_fabric_publish_report",
@@ -219,6 +225,22 @@ async function main() {
   });
 
   function connectReport(targetPath: string): { success: boolean; reportPath?: string; error?: string } {
+    const requested = path.resolve(targetPath);
+    if (requested.endsWith(".Report") && !fs.existsSync(requested)) {
+      try {
+        recoverInterruptedReportReplacement(requested);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return { success: false, error: `Could not recover interrupted report replacement: ${message}` };
+      }
+    } else if (fs.existsSync(requested) && fs.statSync(requested).isDirectory()) {
+      try {
+        recoverInterruptedReportReplacements(requested);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return { success: false, error: `Could not recover interrupted report replacement: ${message}` };
+      }
+    }
     const resolved = findReportFolder(path.resolve(targetPath));
     if (!resolved) {
       return { success: false, error: `No .Report folder found at: ${targetPath}` };

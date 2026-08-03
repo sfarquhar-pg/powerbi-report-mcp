@@ -11,6 +11,8 @@ Local PBIR editing does not require Microsoft authentication. Fabric authenticat
 | `pbir_create_project` | Initialize a local `.Report`; optionally bind a published semantic model ID |
 | `pbir_fabric_auth` | Check status, explicitly log in, or clear the MCP-held session |
 | `pbir_fabric_audit_access` | Audit workspace/report/model readiness and return access directives |
+| `pbir_fabric_diff_report` | Compare a local report or JSON snapshot with an exact live report ID |
+| `pbir_fabric_pull_report` | Pull live PBIR into a new `.Report` folder or lossless JSON snapshot |
 | `pbir_fabric_review_errors` | Check live PBIR components against the bound semantic-model runtime |
 | `pbir_fabric_resolve_folder` | Resolve a folder UUID, exact name, or legacy numeric `subfolderId` |
 | `pbir_fabric_publish_report` | Create or update a Fabric report from the connected PBIR definition |
@@ -95,7 +97,42 @@ Default access target:
 }
 ```
 
-`pbir_fabric_review_errors` downloads the live PBIR definition, extracts page/visual field references, verifies Build capability, and compiles `TOPN(0)` probes. It returns no semantic-model rows. It differentiates missing Build permission, missing report references, and cases where TMDL metadata advertises an object that the live query runtime cannot resolve.
+`pbir_fabric_review_errors` downloads the live PBIR definition, extracts page/visual field references, verifies Build capability, and compiles `TOPN(0)` probes. It returns no semantic-model rows. Missing Build permission and references absent from both TMDL and the probe are errors. A field present in TMDL but rejected by the Execute Queries REST probe is an inconclusive warning: live visual rendering/filtering is stronger evidence and must be checked before declaring the component broken.
+
+## Pull and compare
+
+`pbir_fabric_pull_report` accepts an exact workspace/report ID and either writes the decoded PBIR files to a new `.Report` folder or saves the lossless Fabric definition envelope as JSON. By default it never overwrites existing content.
+
+To replace a local report with the published definition, pass `overwrite:true`. The first call without confirmation returns `confirmationRequired:true`, the exact target, and yes/no choices without downloading or changing files. Save and close Power BI Desktop before confirming: unsaved Desktop work will be discarded, and an open Desktop session may later overwrite the pulled files with stale in-memory state. Re-run with `confirm:true` only after approval. The replacement is staged beside the report; the old report is retained until the new one reconnects successfully and is restored automatically if installation or reconnection fails. Omit `path` to replace the currently connected report.
+
+```json
+{
+  "workspaceId": "00000000-0000-0000-0000-000000000000",
+  "reportId": "00000000-0000-0000-0000-000000000000",
+  "overwrite": true,
+  "confirm": true
+}
+```
+
+```json
+{
+  "workspaceId": "00000000-0000-0000-0000-000000000000",
+  "reportId": "00000000-0000-0000-0000-000000000000",
+  "path": "/absolute/path/report-live.json",
+  "format": "json"
+}
+```
+
+`pbir_fabric_diff_report` compares the connected report, another `.Report` folder, or a pull JSON snapshot against the current live definition. It reports exact and semantic equality, then groups differences under report-level settings, pages, and page components. Component changes are separated into filters, colours, layout, bindings/data, actions/interactions, formatting, and other metadata. The structured hierarchy and a Markdown rendering are both returned.
+
+```json
+{
+  "workspaceId": "00000000-0000-0000-0000-000000000000",
+  "reportId": "00000000-0000-0000-0000-000000000000",
+  "sourcePath": "/absolute/path/Sales.Report",
+  "saveLiveJsonPath": "/absolute/path/sales-live.json"
+}
+```
 
 ## Resolve and publish
 

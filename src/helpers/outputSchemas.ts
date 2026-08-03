@@ -160,6 +160,22 @@ const fabricReviewSchema = z
   .object({ ...envelope, review: z.object({}).passthrough().optional() })
   .passthrough();
 
+const fabricDiffSchema = z
+  .object({
+    ...envelope,
+    identical: z.boolean().optional(),
+    semanticMatch: z.boolean().optional(),
+    matches: z.object({}).passthrough().optional(),
+    summary: z.object({}).passthrough().optional(),
+    report: z.object({}).passthrough().optional(),
+    pages: z.array(z.object({}).passthrough()).optional(),
+    markdown: z.string().optional(),
+    source: z.object({}).passthrough().optional(),
+    target: z.object({}).passthrough().optional(),
+    liveSnapshot: z.object({}).passthrough().optional(),
+  })
+  .passthrough();
+
 const listFiltersSchema = z
   .object({
     ...envelope,
@@ -367,6 +383,7 @@ export const READ_TOOL_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
   pbir_get_report: getReportSchema.shape,
   pbir_fabric_auth: fabricAuthSchema.shape,
   pbir_fabric_audit_access: fabricAuditSchema.shape,
+  pbir_fabric_diff_report: fabricDiffSchema.shape,
   pbir_fabric_review_errors: fabricReviewSchema.shape,
   pbir_fabric_resolve_folder: fabricFolderSchema.shape,
   pbir_list_filters: listFiltersSchema.shape,

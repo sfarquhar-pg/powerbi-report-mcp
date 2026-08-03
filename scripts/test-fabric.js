@@ -6,6 +6,7 @@ const path = require("path");
 const { FabricAuthManager } = require("../dist/fabricAuth.js");
 const { FabricApiClient, collectReportDefinitionParts } = require("../dist/fabricApi.js");
 const { auditFabricPermissions, reviewLiveReportErrors, extractReportReferences } = require("../dist/fabricAudit.js");
+const { getDefinitionParts } = require("../dist/reportDefinition.js");
 
 const failures = [];
 function assert(value, message) {
@@ -93,6 +94,7 @@ function assert(value, message) {
   fs.writeFileSync(path.join(temp, "definition", "report.json"), "{}", "utf8");
   const parts = collectReportDefinitionParts(temp);
   assert(parts.length === 2 && parts.every((part) => part.payloadType === "InlineBase64"), "report publisher packages PBIR files as inline base64 parts");
+  assert(getDefinitionParts({ definition: { parts } }).length === 2, "pull decoder reads Fabric definition envelopes");
   fs.rmSync(temp, { recursive: true, force: true });
 
   const fabricToolsSource = fs.readFileSync(path.join(__dirname, "..", "src", "tools", "fabric.ts"), "utf8");
@@ -150,7 +152,8 @@ function assert(value, message) {
     },
   };
   const liveReview = await reviewLiveReportErrors(reviewApi, { workspaceId: zeroId, reportId: zeroId });
-  assert(liveReview.issues[0].code === "model_runtime_metadata_mismatch", "live review distinguishes model runtime/TMDL mismatch from RBAC failure");
+  assert(liveReview.issues[0].code === "execute_queries_probe_inconclusive", "live review treats a REST/TMDL disagreement as inconclusive when the model definition contains the table");
+  assert(liveReview.issues[0].severity === "warning" && liveReview.ok === true, "inconclusive REST probe does not falsely mark a live PBIR component as broken");
   assert(liveReview.issues[0].components[0].pageName === "Overview", "live review identifies affected page and visual component");
 
   if (failures.length) process.exit(1);

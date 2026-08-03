@@ -246,7 +246,12 @@ export class FabricApiClient {
       }>(resource, `${this.fabricApiBase}/operations/${operationId}`);
       if (state.status === "Failed") throw new Error(`Fabric operation failed: ${JSON.stringify(state.error)}`);
       if (state.status === "Succeeded") {
-        return this.requestJson<T>(resource, `${this.fabricApiBase}/operations/${operationId}/result`);
+        try {
+          return await this.requestJson<T>(resource, `${this.fabricApiBase}/operations/${operationId}/result`);
+        } catch (error) {
+          if (error instanceof Error && error.message.includes("OperationHasNoResult")) return {} as T;
+          throw error;
+        }
       }
     }
     throw new Error(`Fabric operation ${operationId} did not finish within 120 seconds.`);

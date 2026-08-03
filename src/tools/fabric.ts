@@ -7,6 +7,18 @@ import { requireProject } from "../context.js";
 import { collectReportDefinitionParts } from "../fabricApi.js";
 import { auditFabricPermissions, reviewLiveReportErrors } from "../fabricAudit.js";
 import { fail, ok } from "../helpers/mcpResult.js";
+import {
+  finalizeMaterializedDefinition,
+  getDefinitionParts,
+  materializeDefinitionParts,
+  readDefinitionParts,
+  recoverInterruptedReportReplacement,
+  rollbackMaterializedDefinition,
+  writeDefinitionSnapshot,
+} from "../reportDefinition.js";
+import { compareReportDefinitions } from "../reportDiff.js";
+import { invalidateAll } from "../helpers/readCache.js";
+import { invalidateCache } from "../model-usage.js";
 
 function requireConfirm(confirm: boolean | undefined, action: string) {
   return confirm ? null : fail(
@@ -155,6 +167,162 @@ export function registerFabricTools(server: McpServer, ctx: ServerContext): void
     async ({ workspaceId, reportId, semanticModelId, semanticModelWorkspaceId }) => ok({
       review: await reviewLiveReportErrors(ctx.fabricApi, { workspaceId, reportId, semanticModelId, semanticModelWorkspaceId }),
     })
+  );
+
+  server.tool(
+    "pbir_fabric_pull_report",
+    "Pull an exact Fabric PBIR report definition into a local .Report folder or lossless JSON snapshot. Existing reports are replaced only with overwrite=true and confirm=true, using transactional rollback.",
+    {
+      workspaceId: z.string().uuid(),
+      reportId: z.string().uuid(),
+      path: z.string().optional().describe("Absolute destination ending in .Report or .json. May be omitted only when overwriting the connected report."),
+      format: z.enum(["pbir", "json"]).optional().default("pbir"),
+      connect: z.boolean().optional().describe("Connect the pulled .Report; defaults to true for PBIR and false for JSON"),
+      overwrite: z.boolean().optional().default(false).describe("Replace the existing PBIR report at path, or the connected report when path is omitted"),
+      confirm: z.boolean().optional().default(false).describe("Required with overwrite=true after reviewing the destructive confirmation response"),
+    },
+    { destructiveHint: true, openWorldHint: true },
+    async ({ workspaceId, reportId, path: requestedPath, format, connect, overwrite, confirm }) => {
+      const targetPath = requestedPath ?? (overwrite && format === "pbir" ? ctx.getReportPath() : null);
+      if (!targetPath) return fail("Pull destination path is required unless overwrite=true is replacing the connected PBIR report.");
+      if (!path.isAbsolute(targetPath)) return fail("Pull destination must be absolute.");
+      if (format === "pbir" && !targetPath.endsWith(".Report")) return fail("PBIR pull destination must end with .Report.");
+      if (format === "json" && !targetPath.toLowerCase().endsWith(".json")) return fail("JSON pull destination must end with .json.");
+      if (format === "json" && connect) return fail("A JSON snapshot cannot be connected as a report. Use format='pbir' or omit connect.");
+      if (format === "json" && overwrite) return fail("Overwrite mode is supported only for PBIR .Report folders.");
+      if (overwrite && !confirm) {
+        return fail(
+          `This will overwrite the current local report at '${targetPath}' with the published Power BI report ` +
+          `${workspaceId}/${reportId}. Unsaved changes in this folder will be lost. Save and close Power BI Desktop first, ` +
+          `or Desktop may overwrite the pulled files with stale in-memory state. Re-run with confirm=true to continue, ` +
+          `or leave confirm=false to cancel.`,
+          {
+            confirmationRequired: true,
+            choices: ["yes", "no"],
+            action: "overwriteLocalReport",
+            targetPath,
+            workspaceId,
+            reportId,
+          }
+        );
+      }
+      if (!overwrite && fs.existsSync(targetPath) &&
+          (!fs.statSync(targetPath).isDirectory() || fs.readdirSync(targetPath).length > 0)) {
+        return fail(
+          `Refusing to overwrite existing content: ${targetPath}. To replace an existing PBIR report, set overwrite=true and review the confirmation prompt.`,
+          { overwriteRequired: true, targetPath }
+        );
+      }
+
+      if (overwrite) recoverInterruptedReportReplacement(targetPath);
+
+      const definition = await ctx.fabricApi.getReportDefinition(workspaceId, reportId);
+      const parts = getDefinitionParts(definition);
+      if (!parts.length) return fail("Fabric returned no PBIR definition parts for this report.");
+      const itemProbe = await ctx.fabricApi.probe(() => ctx.fabricApi.getItem(workspaceId, reportId));
+      const appBase = (process.env.PBIR_POWERBI_APP_BASE ?? "https://app.powerbi.com").replace(/\/+$/, "");
+      const source = { workspaceId, reportId };
+
+      if (format === "json") {
+        const snapshot = writeDefinitionSnapshot(definition, targetPath, source);
+        return ok({
+          action: "pulled",
+          format,
+          ...source,
+          reportUrl: `${appBase}/groups/${workspaceId}/reports/${reportId}`,
+          item: itemProbe.value,
+          ...snapshot,
+        });
+      }
+
+      const connectedPath = ctx.getReportPath();
+      const connectedIdentity = connectedPath && fs.existsSync(connectedPath)
+        ? fs.realpathSync(connectedPath)
+        : undefined;
+      const pulled = materializeDefinitionParts(parts, targetPath, { overwrite });
+      const targetIdentity = fs.realpathSync(targetPath);
+      const replacingConnectedReport = overwrite && ctx.getReportPath() !== null &&
+        connectedIdentity === targetIdentity;
+      const shouldConnect = replacingConnectedReport || (connect ?? true);
+      if (shouldConnect) {
+        const connected = ctx.connectReport(targetPath);
+        if (!connected.success) {
+          if (overwrite) {
+            rollbackMaterializedDefinition(pulled);
+            ctx.connectReport(targetPath);
+          }
+          return fail(connected.error ?? "Pulled report but failed to connect it.", {
+            reportPath: pulled.reportPath,
+            rolledBack: overwrite,
+          });
+        }
+      }
+      invalidateAll();
+      invalidateCache(targetPath);
+      const cleanup = finalizeMaterializedDefinition(pulled);
+      return ok({
+        action: overwrite ? "overwritten" : "pulled",
+        format,
+        ...source,
+        reportUrl: `${appBase}/groups/${workspaceId}/reports/${reportId}`,
+        item: itemProbe.value,
+        reportPath: pulled.reportPath,
+        fileCount: pulled.fileCount,
+        totalBytes: pulled.totalBytes,
+        connected: shouldConnect,
+        overwritten: overwrite,
+        backupRemoved: cleanup.backupRemoved,
+        backupPath: cleanup.backupPath,
+        warning: cleanup.warning,
+      });
+    }
+  );
+
+  server.tool(
+    "pbir_fabric_diff_report",
+    "Compare a local .Report folder or pulled definition JSON with the exact live Fabric report. Returns a human-readable hierarchy: report settings, pages, then components with filters, colours, layout, bindings, formatting, and other changes.",
+    {
+      workspaceId: z.string().uuid(),
+      reportId: z.string().uuid(),
+      sourcePath: z.string().optional().describe("Absolute local .Report folder or JSON snapshot; defaults to the connected report"),
+      includeUnchanged: z.boolean().optional().default(false).describe("Include unchanged pages and components in the hierarchy"),
+      saveLiveJsonPath: z.string().optional().describe("Optional new absolute .json path for the exact live definition snapshot"),
+    },
+    { openWorldHint: true },
+    async ({ workspaceId, reportId, sourcePath, includeUnchanged, saveLiveJsonPath }) => {
+      const resolvedSource = sourcePath ?? ctx.getReportPath();
+      if (!resolvedSource) return fail("No local comparison source supplied. Connect a report or pass sourcePath.");
+      if (sourcePath && !path.isAbsolute(sourcePath)) return fail("sourcePath must be absolute.");
+      if (saveLiveJsonPath && !path.isAbsolute(saveLiveJsonPath)) return fail("saveLiveJsonPath must be absolute.");
+      if (saveLiveJsonPath && !saveLiveJsonPath.toLowerCase().endsWith(".json")) return fail("saveLiveJsonPath must end with .json.");
+
+      const localParts = readDefinitionParts(resolvedSource);
+      const definition = await ctx.fabricApi.getReportDefinition(workspaceId, reportId);
+      const liveParts = getDefinitionParts(definition);
+      if (!liveParts.length) return fail("Fabric returned no PBIR definition parts for this report.");
+      const liveSnapshot = saveLiveJsonPath
+        ? writeDefinitionSnapshot(definition, saveLiveJsonPath, { workspaceId, reportId })
+        : undefined;
+      const itemProbe = await ctx.fabricApi.probe(() => ctx.fabricApi.getItem(workspaceId, reportId));
+      const appBase = (process.env.PBIR_POWERBI_APP_BASE ?? "https://app.powerbi.com").replace(/\/+$/, "");
+      const diff = compareReportDefinitions(localParts, liveParts, {
+        includeUnchanged,
+        beforeLabel: resolvedSource,
+        afterLabel: `Fabric ${workspaceId}/${reportId}`,
+      });
+      return ok({
+        source: { path: path.resolve(resolvedSource), partCount: localParts.length },
+        target: {
+          workspaceId,
+          reportId,
+          reportUrl: `${appBase}/groups/${workspaceId}/reports/${reportId}`,
+          item: itemProbe.value,
+          partCount: liveParts.length,
+        },
+        liveSnapshot,
+        ...diff,
+      });
+    }
   );
 
   server.tool(

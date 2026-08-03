@@ -55,3 +55,6 @@ jobs:
 
       - name: Audit skills against bundled theme schema
         run: npm run test:schema-docs
+
+      - name: Run Fabric pull and report-diff regressions
+        run: npm run test:report-diff

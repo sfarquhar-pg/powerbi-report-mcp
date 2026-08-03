@@ -211,6 +211,9 @@ Open the `.pbip` file — or if already open, press `Ctrl+Shift+F5` to refresh.
 ```text
 pbir_fabric_auth({ operation: "login" })
 pbir_fabric_audit_access({ workspaceId: "...", reportId: "..." })
+pbir_fabric_pull_report({ workspaceId: "...", reportId: "...", path: "/absolute/report-live.json", format: "json" })
+pbir_fabric_pull_report({ workspaceId: "...", reportId: "...", overwrite: true, confirm: true })
+pbir_fabric_diff_report({ workspaceId: "...", reportId: "...", sourcePath: "/absolute/Sales.Report" })
 pbir_fabric_review_errors({ workspaceId: "...", reportId: "..." })
 pbir_fabric_resolve_folder({ workspaceId: "...", folder: "Test" })
 pbir_fabric_publish_report({ workspaceId: "...", folder: "Test", confirm: true })

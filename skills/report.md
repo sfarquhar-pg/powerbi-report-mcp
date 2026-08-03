@@ -21,6 +21,8 @@ Use these patterns to connect to a report, inspect or update report-level settin
 | `pbir_create_project` | Initialize and connect a new local PBIR `.Report` project |
 | `pbir_fabric_auth` | Explicit Fabric login/status/logout with private session reuse |
 | `pbir_fabric_audit_access` | Audit effective report/model/workspace readiness |
+| `pbir_fabric_diff_report` | Compare a local report or definition JSON with a live Fabric report |
+| `pbir_fabric_pull_report` | Pull an exact live report to PBIR files or definition JSON |
 | `pbir_fabric_review_errors` | Review live report components for broken model references |
 | `pbir_fabric_resolve_folder` | Resolve a Fabric folder UUID/name/legacy numeric ID |
 | `pbir_fabric_publish_report` | Publish or update the connected report after explicit confirmation |
