@@ -639,14 +639,24 @@ export function createAndSaveVisual(
       ],
     };
   } else if (visualType === "image") {
-    // Build image objects when a URL is provided
+    // Build image objects when a URL is provided.
+    // Scaling lives in its own imageScaling.imageScalingType object (PascalCase
+    // values 'Fit' | 'Fill' | 'Normal') — a general.scaling property is ignored
+    // by Power BI and can render the image broken.
     if (imageUrl) {
+      const scalingType = imageScaling.charAt(0).toUpperCase() + imageScaling.slice(1);
       visualObjects = {
         general: [
           {
             properties: {
               imageUrl: { expr: { Literal: { Value: `'${imageUrl}'` } } },
-              scaling: { expr: { Literal: { Value: `'${imageScaling}'` } } },
+            },
+          },
+        ],
+        imageScaling: [
+          {
+            properties: {
+              imageScalingType: { expr: { Literal: { Value: `'${scalingType}'` } } },
             },
           },
         ],

@@ -232,16 +232,24 @@ export function registerReportTools(server: McpServer, ctx: ServerContext): void
         page.config = { visibility: "HiddenInViewMode" };
       }
 
-      // Drillthrough: add a categorical filter with isAllFilter
+      // Drillthrough: enhanced PBIR declares drillthrough via pageBinding plus a
+      // howCreated:"Drillthrough" filter. (The legacy isAllFilter property is
+      // rejected by the Fabric page schema on import.)
       if (drillthrough) {
         const field = columnRef(drillthrough.entity, drillthrough.property);
+        const filterName = generateId();
         page.filterConfig = {
           filters: [{
-            name: generateId(),
+            name: filterName,
             field,
             type: "Categorical",
-            isAllFilter: true,
-          }],
+            howCreated: "Drillthrough",
+          } as never],
+        };
+        (page as unknown as Record<string, unknown>).pageBinding = {
+          name: pageId,
+          type: "Drillthrough",
+          parameters: [{ name: drillthrough.property, boundFilter: filterName }],
         };
       }
 

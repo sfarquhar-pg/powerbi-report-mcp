@@ -50,6 +50,8 @@ export interface StyleProfile {
   };
   imageResources: Array<{ name: string; path: string; base64?: string }>;
   visualExemplars: Record<string, unknown>;
+  /** Theme-ready visualStyles derived from exemplars (borders, backgrounds, title bars, per-type text). */
+  visualStyleDefaults?: Record<string, unknown>;
 }
 
 const URL_PATTERNS = [
@@ -229,6 +231,7 @@ export function extractStyleProfile(
     }
   }
 
+  profile.visualStyleDefaults = deriveVisualStyleDefaults(profile);
   return profile;
 }
 
@@ -351,15 +354,93 @@ function extractLegacyStyleProfile(
     if (!m || m[1] === profile.customThemeName) continue;
     if (/\.(png|jpe?g|gif|svg)$/i.test(m[1])) profile.imageResources.push({ name: m[1], path: p, base64: part.payload });
   }
+  profile.visualStyleDefaults = deriveVisualStyleDefaults(profile);
   return profile;
 }
 
 export interface ApplyResult {
   themeApplied: boolean;
+  visualStylesMerged: boolean;
   imagesCopied: string[];
   bannerSpec?: StyleProfile["banner"];
   tabOrder: string[];
   notes: string[];
+}
+
+/** Unwrap a PBIR property expression into a plain theme value ('#324368', 3, true, "left"). */
+function unwrap(value: unknown): unknown {
+  if (value == null || typeof value !== "object") return value;
+  const v = value as Record<string, any>;
+  const lit = (v.expr ?? v)?.Literal?.Value;
+  if (typeof lit === "string") {
+    if (/^'.*'$/.test(lit)) return lit.slice(1, -1);
+    if (/^-?[\d.]+[DL]$/.test(lit)) return Number(lit.slice(0, -1));
+    if (lit === "true" || lit === "false") return lit === "true";
+    return lit;
+  }
+  const solid = v.solid?.color;
+  if (solid !== undefined) {
+    const inner = unwrap(solid);
+    return typeof inner === "string" && inner.startsWith("#") ? { solid: { color: inner } } : undefined;
+  }
+  return undefined;
+}
+
+/** Convert one exemplar objects-block (expr-wrapped) into a theme visualStyles card list. */
+function themeCards(objects: Record<string, any> | undefined, wanted: string[]): Record<string, Array<Record<string, unknown>>> {
+  const out: Record<string, Array<Record<string, unknown>>> = {};
+  for (const name of wanted) {
+    const list = objects?.[name];
+    if (!Array.isArray(list) || !list.length) continue;
+    // only unselectored cards translate cleanly into a theme
+    const first = list.find((entry: any) => !entry.selector) ?? list[0];
+    const props: Record<string, unknown> = {};
+    for (const [key, raw] of Object.entries(first.properties ?? {})) {
+      const plain = unwrap(raw);
+      if (plain !== undefined) props[key] = plain;
+    }
+    if (Object.keys(props).length) out[name] = [props];
+  }
+  return out;
+}
+
+/**
+ * Derive theme-ready visualStyles from the profile's exemplars so container
+ * chrome (borders, backgrounds, drop shadows, title bars, visual headers) and
+ * per-type text settings (card labels, slicer header/items, table fonts) are
+ * applied mechanically instead of being re-specified by hand — the class of
+ * gap where a mirrored report "loses" borders and callout sizing.
+ */
+export function deriveVisualStyleDefaults(profile: StyleProfile): Record<string, unknown> {
+  const CONTAINER = ["border", "background", "dropShadow", "visualHeader", "title"];
+  const TYPE_OBJECTS: Record<string, string[]> = {
+    card: ["labels", "categoryLabels"],
+    slicer: ["items", "header"],
+    pivotTable: ["values", "columnHeaders", "rowHeaders", "grid"],
+    tableEx: ["values", "columnHeaders", "grid"],
+    pageNavigator: ["shape", "outline", "text", "layout"],
+  };
+  const styles: Record<string, unknown> = {};
+  let containerConsensus: Record<string, Array<Record<string, unknown>>> | null = null;
+
+  for (const [type, exemplarRaw] of Object.entries(profile.visualExemplars ?? {})) {
+    const exemplar = exemplarRaw as Record<string, any>;
+    const container = themeCards(exemplar.visualContainerObjects, CONTAINER);
+    const specific = themeCards(exemplar.objects, TYPE_OBJECTS[type] ?? []);
+    const merged = { ...container, ...specific };
+    if (Object.keys(merged).length) styles[type] = { "*": merged };
+    if (!containerConsensus && container.border) containerConsensus = container;
+  }
+  // "*" fallback carries the shared container chrome (border/background) for
+  // types without their own exemplar.
+  if (containerConsensus) {
+    const shared: Record<string, unknown> = {};
+    for (const key of ["border", "background", "dropShadow"]) {
+      if (containerConsensus[key]) shared[key] = containerConsensus[key];
+    }
+    if (Object.keys(shared).length) styles["*"] = { "*": shared };
+  }
+  return styles;
 }
 
 /**
@@ -377,13 +458,33 @@ export function applyStyleProfile(
   profile: StyleProfile,
   reportVersion: { visual: string; report: string; page: string }
 ): ApplyResult {
-  const result: ApplyResult = { themeApplied: false, imagesCopied: [], tabOrder: profile.tabs.map((t) => t.displayName), notes: [] };
+  const result: ApplyResult = { themeApplied: false, visualStylesMerged: false, imagesCopied: [], tabOrder: profile.tabs.map((t) => t.displayName), notes: [] };
 
-  if (profile.customTheme && profile.customThemeName) {
+  const styleDefaults = profile.visualStyleDefaults ?? deriveVisualStyleDefaults(profile);
+  const hasStyleDefaults = Object.keys(styleDefaults).length > 0;
+  // fall back to a minimal generated theme when the source has none, so derived
+  // container chrome (borders, title bars, card labels...) still lands
+  const themeName = profile.customThemeName ?? (hasStyleDefaults ? "MirroredStyle.json" : undefined);
+  const themeBody: Record<string, any> | undefined = profile.customTheme
+    ? JSON.parse(JSON.stringify(profile.customTheme))
+    : (hasStyleDefaults ? { name: "MirroredStyle" } : undefined);
+
+  if (themeBody && themeName) {
+    if (hasStyleDefaults) {
+      const existing = (themeBody.visualStyles ?? {}) as Record<string, any>;
+      for (const [type, starLevel] of Object.entries(styleDefaults)) {
+        existing[type] = existing[type] ?? {};
+        const target = existing[type]["*"] ?? {};
+        Object.assign(target, (starLevel as Record<string, any>)["*"]);
+        existing[type]["*"] = target;
+      }
+      themeBody.visualStyles = existing;
+      result.visualStylesMerged = true;
+    }
     const report = project.getReport();
     if (!report.themeCollection) report.themeCollection = {};
     report.themeCollection.customTheme = {
-      name: profile.customThemeName,
+      name: themeName,
       reportVersionAtImport: reportVersion,
       type: "RegisteredResources",
     };
@@ -394,8 +495,8 @@ export function applyStyleProfile(
       report.resourcePackages.push(pkg);
     }
     pkg.items = pkg.items.filter((item: any) => item.type !== "CustomTheme");
-    pkg.items.push({ name: profile.customThemeName, path: profile.customThemeName, type: "CustomTheme" });
-    project.saveRegisteredResource(profile.customThemeName, profile.customTheme);
+    pkg.items.push({ name: themeName, path: themeName, type: "CustomTheme" });
+    project.saveRegisteredResource(themeName, themeBody);
     project.saveReport(report);
     result.themeApplied = true;
   } else {

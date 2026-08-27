@@ -140,3 +140,60 @@ check("legacy: nav tabs + image resources + exemplars", () => {
   assert.ok(legacyProfile.visualExemplars.textbox, "textbox exemplar");
 });
 console.log("legacy assertions done");
+
+// --- derived visual style defaults (0.10.2) ---
+const { deriveVisualStyleDefaults } = require("../dist/styleMirror.js");
+const legacyRoot2 = {
+  config: JSON.stringify({ themeCollection: { baseTheme: { name: "CY24SU10", type: 2 } } }),
+  sections: [{
+    name: "s1", displayName: "P", ordinal: 0, width: 1280, height: 720,
+    visualContainers: [
+      { config: JSON.stringify({ layouts: [{ position: { x: 15, y: 200, width: 300, height: 80 } }], singleVisual: {
+        visualType: "card",
+        objects: { labels: [{ properties: { fontSize: { expr: { Literal: { Value: "11D" } } } } }], categoryLabels: [{ properties: { show: { expr: { Literal: { Value: "false" } } } } }] },
+        vcObjects: { border: [{ properties: { show: { expr: { Literal: { Value: "true" } } }, color: { solid: { color: { expr: { Literal: { Value: "'#324368'" } } } } }, radius: { expr: { Literal: { Value: "3D" } } } } }], dropShadow: [{ properties: { show: { expr: { Literal: { Value: "false" } } } } }] },
+      } }) },
+      { config: JSON.stringify({ layouts: [{ position: { x: 15, y: 300, width: 300, height: 60 } }], singleVisual: {
+        visualType: "slicer",
+        objects: { header: [{ properties: { text: { expr: { Literal: { Value: "'Role'" } } }, textSize: { expr: { Literal: { Value: "11D" } } } } }], items: [{ properties: { fontFamily: { expr: { Literal: { Value: "'wf_standard-font'" } } } } }] },
+        vcObjects: { border: [{ properties: { show: { expr: { Literal: { Value: "true" } } }, color: { solid: { color: { expr: { Literal: { Value: "'#324368'" } } } } } } }] },
+      } }) },
+    ],
+  }],
+};
+const legacyParts2 = [{ path: "report.json", payload: Buffer.from(JSON.stringify(legacyRoot2)).toString("base64") }];
+const p2 = extractStyleProfile(legacyParts2, { workspaceId: "w", reportId: "r" });
+check("derive: profile carries visualStyleDefaults", () => {
+  assert.ok(p2.visualStyleDefaults, "visualStyleDefaults present");
+  assert.ok(p2.visualStyleDefaults.card, "card styles derived");
+});
+check("derive: card border + labels unwrapped to theme values", () => {
+  const cardStar = p2.visualStyleDefaults.card["*"];
+  assert.strictEqual(cardStar.border[0].show, true);
+  assert.deepStrictEqual(cardStar.border[0].color, { solid: { color: "#324368" } });
+  assert.strictEqual(cardStar.border[0].radius, 3);
+  assert.strictEqual(cardStar.labels[0].fontSize, 11);
+  assert.strictEqual(cardStar.categoryLabels[0].show, false);
+});
+check("derive: slicer header/items + shared '*' chrome", () => {
+  const slicerStar = p2.visualStyleDefaults.slicer["*"];
+  assert.strictEqual(slicerStar.header[0].text, "Role");
+  assert.strictEqual(slicerStar.items[0].fontFamily, "wf_standard-font");
+  assert.ok(p2.visualStyleDefaults["*"], "shared chrome derived");
+  assert.strictEqual(p2.visualStyleDefaults["*"]["*"].border[0].show, true);
+});
+check("apply: merges derived styles into theme even without source custom theme", () => {
+  let savedName = null, savedBody = null, savedRep = null;
+  const proj = {
+    getReport: () => ({ themeCollection: {}, resourcePackages: [] }),
+    saveReport: (r) => { savedRep = r; },
+    saveRegisteredResource: (n, d) => { savedName = n; savedBody = d; },
+    registeredResourcesPath: scratchResources,
+  };
+  const applied2 = applyStyleProfile(proj, p2, { visual: "2.7.0", report: "3.2.0", page: "2.3.0" });
+  assert.strictEqual(applied2.themeApplied, true);
+  assert.strictEqual(applied2.visualStylesMerged, true);
+  assert.ok(savedBody.visualStyles.card, "card styles in saved theme");
+  assert.strictEqual(savedRep.themeCollection.customTheme.name, savedName);
+});
+console.log("derive assertions done");
