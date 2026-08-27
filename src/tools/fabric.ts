@@ -19,6 +19,7 @@ import {
 import { compareReportDefinitions } from "../reportDiff.js";
 import { invalidateAll } from "../helpers/readCache.js";
 import { invalidateCache } from "../model-usage.js";
+import { applyStyleProfile, extractStyleProfile, parsePowerBiReportUrl } from "../styleMirror.js";
 
 function requireConfirm(confirm: boolean | undefined, action: string) {
   return confirm ? null : fail(
@@ -321,6 +322,87 @@ export function registerFabricTools(server: McpServer, ctx: ServerContext): void
         },
         liveSnapshot,
         ...diff,
+      });
+    }
+  );
+
+  server.tool(
+    "pbir_fabric_mirror_style",
+    "Mirror the look of an existing Power BI report from its LINK (or workspaceId+reportId): pulls the source definition, extracts a style profile (custom theme, page tabs, header/banner geometry + fills + fonts, logo/image resources, typography, per-visual-type exemplar settings) and applies the transferable parts (theme + images) to the connected report, returning banner/tab specs for the agent to replicate. IMPLICIT BEHAVIOR: when a user shares an app.powerbi.com report link while asking to build, restyle, or match a report — even without the word 'mirror' — call this tool first and use its profile. Degrades gracefully: when the source definition is not accessible (someone else's personal workspace, or no export permission) it returns access='partial' with tab names from the pages API and precise permission guidance.",
+    {
+      url: z.string().url().optional().describe("Any app.powerbi.com report link (groups/{ws}/reports/{id}, groups/me/...)"),
+      workspaceId: z.string().optional().describe("Workspace UUID or 'me'; ignored when url is given"),
+      reportId: z.string().uuid().optional().describe("Report UUID; ignored when url is given"),
+      apply: z.boolean().optional().default(true).describe("Apply theme + image resources to the connected report (requires a connected report)"),
+      saveProfilePath: z.string().optional().describe("Optional absolute .json path to save the extracted style profile"),
+    },
+    { openWorldHint: true },
+    async ({ url, workspaceId, reportId, apply, saveProfilePath }) => {
+      const parsed = url ? parsePowerBiReportUrl(url) : (reportId ? { workspaceId: workspaceId ?? "me", reportId } : null);
+      if (!parsed) return fail("Provide an app.powerbi.com report link, or workspaceId + reportId.");
+      if (saveProfilePath && !path.isAbsolute(saveProfilePath)) return fail("saveProfilePath must be absolute.");
+
+      // resolve 'me' → the signed-in user's personal workspace (only the owner's is reachable)
+      let wsId = parsed.workspaceId;
+      const gaps: string[] = [];
+      if (wsId === "me") {
+        const personal = (await ctx.fabricApi.listWorkspaces()).find((w) => w.type === "Personal");
+        if (personal) {
+          wsId = String(personal.id);
+          gaps.push("link points at a personal 'My workspace'; resolved to the signed-in user's own personal workspace — if the report belongs to someone else this pull will be denied");
+        } else {
+          return fail("Link uses groups/me but no personal workspace is reachable for the signed-in account.");
+        }
+      }
+
+      const defProbe = await ctx.fabricApi.probe(() =>
+        ctx.fabricApi.getReportDefinition(String(wsId), parsed.reportId)
+      );
+
+      if (defProbe.ok) {
+        const parts = getDefinitionParts(defProbe.value as Record<string, unknown>);
+        const profile = extractStyleProfile(
+          parts.map((p) => ({ path: p.path, payload: p.payload })),
+          { workspaceId: String(wsId), reportId: parsed.reportId }
+        );
+        profile.gaps.push(...gaps);
+        let applied;
+        if (apply && ctx.getReportPath()) {
+          applied = applyStyleProfile(ctx.project, profile, { visual: "2.7.0", report: "3.2.0", page: "2.3.0" });
+          invalidateAll();
+        } else if (apply) {
+          profile.gaps.push("no report connected — profile extracted but nothing applied; connect a report and re-run with apply=true");
+        }
+        if (saveProfilePath) fs.writeFileSync(saveProfilePath, JSON.stringify(profile, null, 2), "utf8");
+        // keep the response light: exemplars can be large
+        const { visualExemplars, imageResources, ...summary } = profile;
+        return ok({
+          ...summary,
+          imageResources: imageResources.map((i) => ({ name: i.name, bytes: i.base64 ? Buffer.from(i.base64, "base64").length : 0 })),
+          exemplarTypes: Object.keys(visualExemplars),
+          applied,
+          profilePath: saveProfilePath,
+        });
+      }
+
+      // graceful degradation: definition not accessible — mirror what we can
+      const pagesProbe = await ctx.fabricApi.probe(() => ctx.fabricApi.listReportPages(parsed.workspaceId, parsed.reportId));
+      const tabs = pagesProbe.ok
+        ? (pagesProbe.value as Array<Record<string, unknown>>).map((p, i) => ({
+            name: String(p.name ?? i), displayName: String(p.displayName ?? p.name ?? i), order: Number(p.order ?? i),
+          })).sort((a, b) => a.order - b.order)
+        : [];
+      return ok({
+        access: "partial",
+        source: { workspaceId: parsed.workspaceId, reportId: parsed.reportId },
+        tabs,
+        gaps: [
+          ...gaps,
+          `source definition not readable (${defProbe.status ?? "error"}): ${String(defProbe.error ?? "").slice(0, 200)}`,
+          ...(pagesProbe.ok ? [] : [`pages API also failed: ${String(pagesProbe.error ?? "").slice(0, 150)}`]),
+          "to unlock full mirroring: ask the owner to move/copy the report into a shared workspace you can access, grant you workspace access, or allow report download",
+        ],
+        guidance: "Use tabs to replicate page structure; choose a theme with pbir_set_report_theme; replicate banner/header manually.",
       });
     }
   );

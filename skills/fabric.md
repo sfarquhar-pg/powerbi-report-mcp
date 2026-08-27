@@ -13,6 +13,7 @@ Local PBIR editing does not require Microsoft authentication. Fabric authenticat
 | `pbir_fabric_audit_access` | Audit workspace/report/model readiness and return access directives |
 | `pbir_fabric_diff_report` | Compare a local report or JSON snapshot with an exact live report ID |
 | `pbir_fabric_pull_report` | Pull live PBIR into a new `.Report` folder or lossless JSON snapshot |
+| `pbir_fabric_mirror_style` | Extract + apply the look of a report from its link: theme, tabs, banner spec, logo images, typography, per-type exemplars |
 | `pbir_fabric_review_errors` | Check live PBIR components against the bound semantic-model runtime |
 | `pbir_fabric_resolve_folder` | Resolve a folder UUID, exact name, or legacy numeric `subfolderId` |
 | `pbir_fabric_publish_report` | Create or update a Fabric report from the connected PBIR definition |
@@ -158,3 +159,7 @@ To replace a local report with the published definition, pass `overwrite:true`. 
 - Create fails when the workspace already has that display name.
 - Updating requires the exact `reportId`; the tool never chooses an overwrite target by name.
 - Symlinked report parts are rejected.
+
+## Style mirroring from a link
+
+`pbir_fabric_mirror_style` is the default first move whenever the user shares an `app.powerbi.com` report link while asking to build, restyle, or match a report — treat the link itself as the instruction to mirror, even when the word "mirror" is absent. It parses the link (`groups/{ws}/reports/{id}`, `groups/me/...`, bare `reports/{id}`), pulls the source definition, and returns a style profile: custom theme JSON, tab names/order, header/banner geometry with fills/fonts/text and logo image resources, in-page navigation usage, typography tallies, and one raw-settings exemplar per visual type. With a connected report and `apply=true` it writes the theme + images immediately; replicate `bannerSpec` and `tabs` with `pbir_create_page` / `pbir_add_visual`. When the source is unreadable (another user's personal workspace, no export permission) it returns `access:"partial"` with tab names from the pages API and exact permission guidance — build with the partial profile and say what could not be mirrored.

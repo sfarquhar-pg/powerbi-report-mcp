@@ -8,11 +8,11 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/version-0.9.6-green.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.10.1-green.svg" alt="Version">
   <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node.js">
   <img src="https://img.shields.io/badge/MCP-1.12-purple.svg" alt="MCP SDK">
   <img src="https://img.shields.io/badge/Power%20BI-PBIR-yellow.svg" alt="PBIR Format">
-  <img src="https://img.shields.io/badge/tools-62-orange.svg" alt="62 Tools">
+  <img src="https://img.shields.io/badge/tools-63-orange.svg" alt="63 Tools">
 </p>
 
 <p align="center">

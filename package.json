@@ -1,6 +1,6 @@
 {
   "name": "powerbi-report-mcp",
-  "version": "0.9.6",
+  "version": "0.10.1",
   "description": "MCP server for building Power BI reports (PBIR format)",
   "engines": {
     "node": ">=20"
@@ -40,9 +40,10 @@
     "test:fabric": "node scripts/test-fabric.js",
     "test:report-diff": "node scripts/test-report-diff.js",
     "test:page-background": "node scripts/test-page-background.js",
+    "test:mirror-style": "node scripts/test-mirror-style.js",
     "schema:check": "node scripts/refresh-theme-schema.js --check",
     "schema:refresh": "node scripts/refresh-theme-schema.js",
-    "test:all": "npm run build && npm run audit:strict && npm run audit:public && npm run test:wireframe && npm run test:binding && npm run test:measure-home-table && npm run test:extract-title && npm run test:layout && npm run test:grid && npm run test:slicer && npm run test:schema-docs && npm run test:surface && npm run test:pagination && npm run test:set-report && npm run test:fabric && npm run test:report-diff && npm run test:page-background && npm run test:validate-wireframe",
+    "test:all": "npm run build && npm run audit:strict && npm run audit:public && npm run test:wireframe && npm run test:binding && npm run test:measure-home-table && npm run test:extract-title && npm run test:layout && npm run test:grid && npm run test:slicer && npm run test:schema-docs && npm run test:surface && npm run test:pagination && npm run test:set-report && npm run test:fabric && npm run test:report-diff && npm run test:page-background && npm run test:validate-wireframe && npm run test:mirror-style",
     "hooks:install": "node scripts/install-hooks.js",
     "plugin:build": "node scripts/build-plugin.js",
     "eval:install": "pip install -r evals/requirements.txt",

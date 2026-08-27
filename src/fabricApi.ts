@@ -67,6 +67,23 @@ export class FabricApiClient {
     return result.value ?? [];
   }
 
+  async listWorkspaces(): Promise<Array<Record<string, unknown>>> {
+    const result = await this.requestJson<{ value?: Array<Record<string, unknown>> }>(
+      "fabric",
+      `${this.fabricApiBase}/workspaces`
+    );
+    return result.value ?? [];
+  }
+
+  async listReportPages(workspaceId: string | "me", reportId: string): Promise<Array<Record<string, unknown>>> {
+    const scope = workspaceId === "me" ? "" : `groups/${workspaceId}/`;
+    const result = await this.requestJson<{ value?: Array<Record<string, unknown>> }>(
+      "powerbi",
+      `${this.powerBiApiBase}/v1.0/myorg/${scope}reports/${reportId}/pages`
+    );
+    return result.value ?? [];
+  }
+
   async publishReport(input: {
     workspaceId: string;
     displayName: string;
