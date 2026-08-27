@@ -21,6 +21,7 @@ import type { ServerContext } from "../context.js";
 import { requireProject } from "../context.js";
 import { resolvePageId } from "../helpers/resolvePage.js";
 import { ok, fail } from "../helpers/mcpResult.js";
+import { auditStyleConsistency } from "../styleAudit.js";
 
 /**
  * Build the WireframeVisual[] list for a page by walking visual.json files
@@ -118,6 +119,27 @@ export function registerValidateTools(server: McpServer, ctx: ServerContext): vo
         displayName: pageDisplayName(ctx.project, pageId),
         report,
       });
+    }
+  );
+
+  server.tool(
+    "pbir_audit_style_consistency",
+    "Audit the connected report for styling regressions that layout validation misses: fonts outside an allowlist (pass fontAllowlist, e.g. ['DIN']), card values that cannot fit their container (will clip/scroll), slicers with no visible label, malformed measure filters in filterConfig (visual would fail to load), and per-type border inconsistency. Run after building or restyling a report — treat any issue as a gate before publishing.",
+    {
+      fontAllowlist: z.array(z.string()).optional().describe("Allowed font-name substrings (case-insensitive), e.g. ['Segoe UI']. Omit to only collect the font census."),
+      exempt: z.array(z.string()).optional().describe("Visual IDs exempt from size/overflow checks (deliberately scrollable/oversized)"),
+    },
+    { readOnlyHint: true, openWorldHint: false },
+    async ({ fontAllowlist, exempt }) => {
+      const guard = requireProject(ctx); if (guard) return guard;
+      const visuals: Array<{ pageId: string; visualId: string; json: Record<string, unknown> }> = [];
+      for (const pageId of ctx.project.listPageIds()) {
+        for (const visualId of ctx.project.listVisualIds(pageId)) {
+          visuals.push({ pageId, visualId, json: ctx.project.getVisual(pageId, visualId) as unknown as Record<string, unknown> });
+        }
+      }
+      const report = auditStyleConsistency(visuals, { fontAllowlist, exempt });
+      return ok(report as unknown as Record<string, unknown>);
     }
   );
 }

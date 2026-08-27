@@ -393,3 +393,29 @@ Rules:
 
 The banner is always z-order 0. Content visuals increment in reading order
 (top-left to bottom-right).
+
+## Style consistency audit
+
+`pbir_audit_style_consistency` is the companion gate to `pbir_validate_wireframe` for everything layout geometry cannot see. Run it after building or restyling and before publishing. Pass `fontAllowlist` (e.g. `["DIN"]`) to enforce a typography system; without it you still get a full font census. It flags: `CARD_OVERFLOW` (callout + title cannot fit the card height — the value will clip or scroll), `UNLABELED_SLICER` (no visible container title and no visible slicer header), `FONT_VIOLATION`, `MEASURE_FILTER_MISMATCH` (a filterConfig measure filter whose From/Where does not reference the declared field — the visual will fail to load at runtime), and `BORDER_INCONSISTENT` (a minority of one visual type deviating from that type's border convention). Treat any issue as a publish blocker.
+
+## Component minimum-size formulas
+
+`pbir_audit_style_consistency` enforces these (px; line height = fontSize × 1.8, avg char width = fontSize × 0.58). Size components to AT LEAST these before placing them; pass `exempt: [visualId]` only when scrolling is deliberately wanted.
+
+| Component | Min height | Notes |
+|---|---|---|
+| Slicer (dropdown) | titleBar + header(text×1.8) + 30 input + 14 | 10pt header, no title bar → **~62px**. 48px clips the input. |
+| Slicer (list) | titleBar + 3 × items×1.9 + 14 | at least 3 visible items |
+| Card | titleBar + callout×1.9 + categoryLabel(14) + 12 | callout 20pt in a titled card → ~84px |
+| Chart (any) | titleBar + legend(22) + 120 plot | min width 180 |
+| Table / matrix | titleBar + header row + 2 data rows + 12 | min width 150 |
+| Page navigator | text × 2.6 | |
+| Textbox / shape text | lines × fontSize × 1.8 + 10 | **width = maxLineChars × fontSize × 0.58 + 16.** ALWAYS size the box for the font — when a textbox sits on a background band (banner/footer), match the band's height and give the width the text estimate plus tolerance; never leave a smaller box floating over the band. |
+
+## Typography roles
+
+Keep ONE size per role across the report (the audit flags drift as `TYPO_INCONSISTENT`): pageHeading (banner textbox), visualTitle, cardValue, dataLabels, legend, axis, slicerHeader, slicerItems, tableHeaders, tableValues. Fonts come from the report theme — with `MCP_FONT_DEFAULTS=off`, never write per-visual fontFamily except deliberate exceptions.
+
+## Chart defaults
+
+Always show data labels on bar/column/line/pie charts and keep tooltips enabled on line charts unless the user asks otherwise.

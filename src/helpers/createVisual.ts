@@ -733,9 +733,12 @@ export function createAndSaveVisual(
     };
   }
 
-  // Apply default font (fontSize 8, Segoe UI) to title — overridable by containerFormat
+  // Apply default font (fontSize 8, Segoe UI) to title — overridable by containerFormat.
+  // Set MCP_FONT_DEFAULTS=off to skip ALL implicit font/size injection so the report
+  // theme (textClasses / visualStyles) drives typography instead.
+  const injectFontDefaults = (process.env.MCP_FONT_DEFAULTS ?? "legacy").toLowerCase() !== "off";
   if (!visual.visual.visualContainerObjects) visual.visual.visualContainerObjects = {};
-  applyFormattingToTarget(visual.visual.visualContainerObjects as Record<string, unknown>, [
+  if (injectFontDefaults) applyFormattingToTarget(visual.visual.visualContainerObjects as Record<string, unknown>, [
     {
       category: "title",
       properties: {
@@ -767,7 +770,7 @@ export function createAndSaveVisual(
     fontSize: 8,
     fontFamily: "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
   };
-  if (!NO_DATA_VISUAL_TYPES.has(visualType)) {
+  if (injectFontDefaults && !NO_DATA_VISUAL_TYPES.has(visualType)) {
     if (!visual.visual.objects) visual.visual.objects = {};
     if (slicerTypes.has(visualType)) {
       applyFormattingToTarget(visual.visual.objects as Record<string, unknown>, [
