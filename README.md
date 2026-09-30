@@ -130,7 +130,7 @@ graph LR
 ### 1. Install
 
 ```bash
-git clone https://github.com/jonathan-pap/powerbi-report-mcp.git
+git clone https://github.com/sfarquhar-pg/powerbi-report-mcp.git
 cd powerbi-report-mcp
 npm install
 npm run build
@@ -182,11 +182,11 @@ Trade-off summary (full breakdown in [Smart Tool Loading](#smart-tool-loading) b
 
 ### 3b. Cowork plugin
 
-Prefer to skip the `git clone`/`npm install` dance? Grab the latest **`.plugin`** bundle from [GitHub Releases](https://github.com/jonathan-pap/powerbi-report-mcp/releases) and drag it into Claude — the plugin ships the server, skills, and a default MCP wiring in one file.
+Prefer to skip the `git clone`/`npm install` dance? Grab the latest **`.plugin`** bundle from [GitHub Releases](https://github.com/sfarquhar-pg/powerbi-report-mcp/releases) and drag it into Claude — the plugin ships the server, skills, and a default MCP wiring in one file.
 
 | Step | Action |
 |------|--------|
-| 1 | Download `powerbi-report-builder-<version>.plugin` from [the latest release](https://github.com/jonathan-pap/powerbi-report-mcp/releases/latest) |
+| 1 | Download `powerbi-report-builder-<version>.plugin` from [the latest release](https://github.com/sfarquhar-pg/powerbi-report-mcp/releases/latest) |
 | 2 | Open Claude → **Settings → Plugins → Install from file** (or drag-and-drop the `.plugin` onto the Claude window) |
 | 3 | Approve the bundled MCP server when prompted |
 | 4 | In any Claude conversation: *"Connect to C:\\Projects\\Sales.Report and list pages"* |
@@ -697,9 +697,9 @@ The MCP is built on the standard MCP protocol. **Currently verified against:**
 |--------|--------|--------|
 | **Claude Code** | ✅ Tested | `claude mcp add` or local `.mcp.json` |
 | **Claude Desktop** | ✅ Tested | `claude_desktop_config.json` |
-| **Claude Cowork** | ✅ Tested | Drag the `.plugin` from [Releases](https://github.com/jonathan-pap/powerbi-report-mcp/releases) |
+| **Claude Cowork** | ✅ Tested | Drag the `.plugin` from [Releases](https://github.com/sfarquhar-pg/powerbi-report-mcp/releases) |
 
-**Other MCP-compatible clients** (Cursor, Continue.dev, Cline, GitHub Copilot agent mode, OpenAI via `mcp-proxy`, custom `@modelcontextprotocol/sdk` agents) **should work** since this is a standard MCP server — but they haven't been verified against this codebase yet. If you try one and it works (or doesn't), please [open an issue](https://github.com/jonathan-pap/powerbi-report-mcp/issues) so we can update this table.
+**Other MCP-compatible clients** (Cursor, Continue.dev, Cline, GitHub Copilot agent mode, OpenAI via `mcp-proxy`, custom `@modelcontextprotocol/sdk` agents) **should work** since this is a standard MCP server — but they haven't been verified against this codebase yet. If you try one and it works (or doesn't), please [open an issue](https://github.com/sfarquhar-pg/powerbi-report-mcp/issues) so we can update this table.
 
 ---
 
@@ -707,6 +707,7 @@ The MCP is built on the standard MCP protocol. **Currently verified against:**
 
 | Doc | Description |
 |-----|-------------|
+| **[docs/windows-beginner-guide.md](docs/windows-beginner-guide.md)** | End-to-end Windows setup using Power BI Desktop, Claude Code Desktop, Microsoft's Modeling MCP, and this Report MCP |
 | **[docs/quickstart.md](docs/quickstart.md)** | 5-minute setup guide |
 | **[docs/example-prompts.md](docs/example-prompts.md)** | 15 example prompts |
 | **[docs/visual-types.md](docs/visual-types.md)** | Visual type reference + formatting containers per type |
@@ -728,7 +729,7 @@ The MCP is built on the standard MCP protocol. **Currently verified against:**
 
 ## Tips
 
-- Pair with **[powerbi-modeling-mcp](https://github.com/nicholasgma/powerbi-modeling-mcp)** to query the semantic model for exact table/column names before binding
+- Pair with Microsoft's **[powerbi-modeling-mcp](https://github.com/microsoft/powerbi-modeling-mcp)** to query the semantic model for exact table/column names before binding
 - Use `Table[Column]` shorthand in bindings: `"field": "Sales[Revenue]"`
 - `barChart` = stacked bar, `clusteredBarChart` = clustered — there is no `stackedBarChart`
 - Add shapes **before** data visuals for correct z-order layering

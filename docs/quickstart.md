@@ -17,7 +17,7 @@ Go from zero to a working Power BI report page in 5 minutes using an AI assistan
 ## Step 1: Clone and Build (1 min)
 
 ```bash
-git clone https://github.com/user/powerbi-report-mcp.git
+git clone https://github.com/sfarquhar-pg/powerbi-report-mcp.git
 cd powerbi-report-mcp
 npm install
 npm run build
@@ -152,4 +152,4 @@ You should see the banner, three KPI cards with aggregated values, and a bar cha
 - **More prompts:** See [example-prompts.md](example-prompts.md) for a full library of prompts covering charts, formatting, conditional formatting, filters, theming, and multi-page reports.
 - **Full tool reference:** See the [README](../README.md) for all 42 tools, formatting options, and supported visual types.
 - **Smart tool loading:** By default, 10 core tools are loaded. Use `pbir_load_tools` mid-session to activate additional tools (filters, themes, conditional formatting, etc.) on demand without restarting.
-- **Semantic model queries:** Pair with [powerbi-modeling-mcp](https://github.com/user/powerbi-modeling-mcp) to query your data model, inspect tables and columns, and write DAX -- all from the same AI conversation.
+- **Semantic model queries:** Pair with Microsoft's [powerbi-modeling-mcp](https://github.com/microsoft/powerbi-modeling-mcp) to query your data model, inspect tables and columns, and write DAX -- all from the same AI conversation.
