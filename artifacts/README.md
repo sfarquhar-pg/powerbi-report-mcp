@@ -1236,13 +1236,9 @@ visual IDs for highlighting.
 </script>
 ```
 
-## Follow-ups parked for v2
+## Follow-ups still parked
 
-- **Wireframe validator warnings footer** — `src/wireframe-validator.ts` is
-  not exposed via an MCP tool, so per-page warnings can't be shown without
-  a new tool (or running validation client-side, duplicating geometry). Add
-  `pbir_validate_wireframe` (or surface validator output on `pbir_list_pages`)
-  before wiring the warnings footer.
+Done in v3: the warnings footer, backed by `pbir_validate_wireframe` (v0.9.6), and click-a-warning-to-highlight-the-visual (see above).
+
 - **Field bindings UI.** Visuals are scaffolded empty by design. Add a model
   field picker once we see whether users want it.
-- **Click warning → highlight visual.** Depends on the warnings footer above.
