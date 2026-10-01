@@ -35,14 +35,15 @@ Validate:
 
 ```
 canvas:        1280 × 720
-marginLeft:    20    (knowledge/wireframes.md treats this as 15 in some places — read the live constants)
-marginRight:   20
-marginTop:     ?     (banner-aware)
+marginLeft:    15
+marginRight:   15
+marginTop:     0     (banner-aware)
 marginBottom:  6
 gap:           5
 banner:        first content row when reserveBannerRow:true
 ```
 
-The authoritative values live in `src/helpers/layoutValidation.ts` and
-`src/tools/layoutGrid.ts` (`CANVAS` constant). Markdown can mirror the rules;
+The authoritative values live in the `CANVAS` constant in
+`src/wireframe-validator.ts`, which `src/helpers/layoutValidation.ts` and
+`src/tools/layoutGrid.ts` import. Markdown can mirror the rules;
 only the validator enforces them.

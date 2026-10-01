@@ -26,7 +26,7 @@
 ```jsonc
 {
   "success": true,
-  "plan": [ { "slotRef": "r0c0", "x":20, "y":50, "width":..., "height":..., "visualType":"barChart" } ],
+  "plan": [ { "slotRef": "r0c0", "x":15, "y":57, "width":..., "height":..., "visualType":"barChart" } ],
   "canvas": { /* getCanvasSummary() */ },
   "grid": { "rows":2, "cols":3, "gaps":5, "margins":{...}, "reserveBannerRow":false }
 }

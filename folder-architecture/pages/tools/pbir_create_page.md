@@ -36,7 +36,7 @@
 ## Validation
 
 None pre-write. Page schema is generated server-side; drillthrough builds a
-Categorical filter with `isAllFilter: true`.
+Categorical filter (`howCreated: "Drillthrough"`) plus a `pageBinding` of type `Drillthrough` whose parameter points at that filter. The legacy `isAllFilter` property is not written because the Fabric page schema rejects it.
 
 ## Gotchas
 

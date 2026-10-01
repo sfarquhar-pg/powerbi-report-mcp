@@ -18,7 +18,7 @@ path to the regenerated HTML dashboard.
 
 - `readOnlyHint: true`
 - Per-report cache with mtime fingerprint; rebuilds only when files change
-- Always regenerates HTML dashboard (async, non-blocking) under `<reportRoot>/.pbir-mcp/usage/`
+- Always regenerates HTML dashboard (async, non-blocking) under `.usage/<report-name>/` inside the MCP server's project folder
 - File watchers re-bust cache on `.SemanticModel/` mutations
 
 ## What's NOT replicable in markdown
@@ -30,7 +30,7 @@ path to the regenerated HTML dashboard.
 
 ## In the default tool set
 
-One of the 13 default-loaded tools — the "did I forget to bind this measure?"
+One of the 14 default-loaded tools — the "did I forget to bind this measure?"
 question is too frequent to require activation.
 
 ## Categorization note

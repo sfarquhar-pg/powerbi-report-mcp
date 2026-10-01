@@ -207,16 +207,16 @@ Override rules:
 {
   "pageId": "<id>",
   "visuals": [
-    { "visualType": "slicer",     "x": 10,  "y": 650, "width": 180, "height": 44,
+    { "visualType": "slicer",     "x": 15,  "y": 650, "width": 180, "height": 44,
       "slicerMode": "Dropdown", "title": "Year",
       "bindings": [{ "bucket": "Values", "fields": [{ "field": "Date[Year]", "type": "column" }] }] },
-    { "visualType": "slicer",     "x": 200, "y": 650, "width": 180, "height": 44,
+    { "visualType": "slicer",     "x": 205, "y": 650, "width": 180, "height": 44,
       "slicerMode": "Dropdown", "title": "Quarter",
       "bindings": [{ "bucket": "Values", "fields": [{ "field": "Date[Quarter]", "type": "column" }] }] },
-    { "visualType": "textSlicer", "x": 390, "y": 650, "width": 240, "height": 44,
+    { "visualType": "textSlicer", "x": 395, "y": 650, "width": 240, "height": 44,
       "title": "Search Product",
       "bindings": [{ "bucket": "Values", "fields": [{ "field": "Product[Name]", "type": "column" }] }] },
-    { "visualType": "listSlicer", "x": 640, "y": 620, "width": 200, "height": 90,
+    { "visualType": "listSlicer", "x": 645, "y": 620, "width": 200, "height": 90,
       "title": "Segment", "multiSelect": true,
       "bindings": [{ "bucket": "Values", "fields": [{ "field": "Sales[Segment]", "type": "column" }] }] }
   ]

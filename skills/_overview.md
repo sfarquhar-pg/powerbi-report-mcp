@@ -29,14 +29,14 @@ You are working with Power BI reports in the PBIR (Power BI Report) format — a
 For visualType names, bucket bindings, canvas/layout rules, and formatting gotchas, call
 `pbir_guide(topic)` — topics are discovered live from skills/*.md (wireframes, visuals, slicers,
 formatting, themes, themes-per-visual, shapes, filters, svg-visuals, calculations, pages,
-report-design, report, fabric, elicitation, token-usage). Start with `pbir_guide("wireframes")` when
+report-design, report, fabric, elicitation, token-usage, errors, post-edit-checklist). Start with `pbir_guide("wireframes")` when
 building a fresh page; canvas constants and layout formulas live there.
 
 For Power BI Service publishing, call `pbir_guide("fabric")` first. Login is explicit and session-scoped; local editing never requires authentication.
 
 ## Unsupported / non-obvious surface
 - **Visual interactions** — `pbir_set_visual_interaction` for cross-filter/cross-highlight (`visualInteractions` in page.json).
-- **Sort definitions** — `sortDefinition` in visual query controls default sort order. Not exposed as a tool.
+- **Sort definitions** — `sortDefinition` in visual query controls default sort order. Set with `pbir_set_visual_sort`.
 - **Extension measures** — `pbir_manage_extension_measures` for report-level DAX (`reportExtensions.json`). WARNING: file auto-deletes when empty; empty `entities: []` crashes PBI Desktop.
 - **Bookmarks** — `pbir_list_bookmarks`, `pbir_add_bookmark`, `pbir_delete_bookmark`, `pbir_rename_bookmark`.
 - **Filter pane visibility** — `pbir_set_filter_pane` (`objects.outspacePane` in report.json).

@@ -19,6 +19,8 @@
 { "success": true, "pageId": "...", "background": "#...", "wallpaper": "#..." }
 ```
 
+With `clear:true` the response is `{ "success": true, "pageId": "...", "cleared": true }`.
+
 ## Behavior
 
 - `idempotentHint: true`

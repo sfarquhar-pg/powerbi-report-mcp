@@ -43,7 +43,7 @@ Typical first-page-of-report flow:
 - **PageId auto-resolution**: most tools auto-resolve `pageId` when only one
   page exists. Pass it explicitly for multi-page reports.
 - **Tooltip pages**: default to 320×240, `ActualSize` display, hidden from nav.
-- **Drillthrough pages**: filter on `entity[property]` with `isAllFilter: true`.
+- **Drillthrough pages**: declared with a categorical filter on `entity[property]` (`howCreated: "Drillthrough"`) plus a `pageBinding` of type `Drillthrough`; the legacy `isAllFilter` property is not written.
 - **Delete is unrecoverable** — `pbir_delete_page` drops the page folder and
   every visual under it; the active page falls back to the first remaining page.
 - **Reorder is strict** — `pageOrder` must be a permutation (same length,

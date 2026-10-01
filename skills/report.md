@@ -228,10 +228,10 @@ Pass `reportPath` to inspect a different report without changing the connected o
 
 ## `pbir_load_tools` — on-demand tool catalog
 
-**By default, all 62 report tools load at startup.** This matches reality — most MCP clients (Claude Desktop especially) snapshot the tool catalog at session start and don't handle `tools/list_changed`, so lazy activation was dead weight there.
+**By default, all 66 report tools load at startup.** This matches reality — most MCP clients (Claude Desktop especially) snapshot the tool catalog at session start and don't handle `tools/list_changed`, so lazy activation was dead weight there.
 
 ### Minimal mode (opt-in)
-Set `MCP_TOOLS=minimal` before launching the server to load only the 14 core tools at startup. The remaining 48 are activated via `pbir_load_tools`.
+Set `MCP_TOOLS=minimal` before launching the server to load only the 14 core tools at startup. The remaining 52 are activated via `pbir_load_tools`.
 
 ### Default tools (minimal mode — always loaded)
 ```

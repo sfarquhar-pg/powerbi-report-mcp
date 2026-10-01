@@ -49,5 +49,5 @@ itself is too large to inline in this folder — only code can lookup against it
 
 ## In the default tool set
 
-This tool is one of the 13 default-loaded tools because the typo-catcher and
+This tool is one of the 14 default-loaded tools because the typo-catcher and
 the format guidance both depend on it.
