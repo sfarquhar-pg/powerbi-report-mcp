@@ -711,7 +711,7 @@ The MCP is built on the standard MCP protocol. **Currently verified against:**
 | **[docs/quickstart.md](docs/quickstart.md)** | 5-minute setup guide |
 | **[docs/example-prompts.md](docs/example-prompts.md)** | 15 example prompts |
 | **[docs/visual-types.md](docs/visual-types.md)** | Visual type reference + formatting containers per type |
-| **[docs/wireframes.md](docs/wireframes.md)** | Layout guide — zones, spacing, 3 sample layouts with exact positions |
+| **[skills/wireframes.md](skills/wireframes.md)** | Layout guide — zones, spacing, 3 sample layouts with exact positions |
 | **[docs/pbir-gotchas.md](docs/pbir-gotchas.md)** | PBIR schema discoveries |
 | **[ARCHITECTURE.md](ARCHITECTURE.md)** | Codebase architecture |
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to contribute |

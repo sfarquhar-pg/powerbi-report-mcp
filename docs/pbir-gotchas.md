@@ -3,7 +3,7 @@
 
 Reference document for contributors to `powerbi-report-mcp`. Every gotcha listed here was discovered by writing JSON programmatically, opening the report in Power BI Desktop, observing the failure, then applying the operation manually in PBI Desktop, saving, and reading back the exact JSON PBI Desktop wrote.
 
-Bug IDs (B01--B17) map to the CHANGELOG and tests.md entries.
+Bug IDs (B01--B17) map to the CHANGELOG and docs/archive/tests.md entries.
 
 ---
 

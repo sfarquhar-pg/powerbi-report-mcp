@@ -214,13 +214,13 @@ There is no automated test suite. All testing is manual UAT (User Acceptance Tes
 
 ### Documenting results
 
-Record your test results in `tests.md` following the existing format:
+Record your test results in `docs/archive/tests.md` following the existing format:
 
 - A results table with columns: `#`, `Tool(s)`, `Input / Target`, `Result`, `Notes`.
 - A bugs table if you found and fixed issues during testing.
 - Observations section for anything noteworthy.
 
-See the existing UAT rounds in `tests.md` for examples. Each round is dated and lists the pages under test, results, and any bugs found.
+See the existing UAT rounds in `docs/archive/tests.md` for examples. Each round is dated and lists the pages under test, results, and any bugs found.
 
 ---
 
@@ -289,7 +289,7 @@ The single most important rule: **Power BI Desktop is the authority on valid PBI
 3. Read the JSON files it wrote.
 4. Match that structure exactly in your code.
 
-This "apply manually, read back JSON" method has been the most reliable way to discover correct formats throughout this project (see B04, B07, B08, B09, B12, B13 in `tests.md` for examples).
+This "apply manually, read back JSON" method has been the most reliable way to discover correct formats throughout this project (see B04, B07, B08, B09, B12, B13 in `docs/archive/tests.md` for examples).
 
 ---
 
@@ -322,12 +322,12 @@ refactor: extract field parsing into helpers/createVisual.ts
 
 ## 10. Known Parked Features
 
-The following features are intentionally parked. Do not attempt to fix or re-enable them without reading the prior investigation in `tests.md` and `CHANGELOG.md`.
+The following features are intentionally parked. Do not attempt to fix or re-enable them without reading the prior investigation in `docs/archive/tests.md` and `CHANGELOG.md`.
 
 ### Visual Calculations
 
 Tools: `add_visual_calculation`, `list_visual_calculations`, `delete_visual_calculation`
 
-Status: Code exists in `src/tools/calculations.ts` but is not registered. The correct PBIR JSON format was identified (`NativeVisualCalculation` projections in `queryState.Values.projections[]`), but calculations written via file edit do not render in PBI Desktop. This likely requires internal PBI Desktop state initialization that cannot be triggered through file manipulation alone. See B14 in `tests.md`.
+Status: Code exists in `src/tools/calculations.ts` but is not registered. The correct PBIR JSON format was identified (`NativeVisualCalculation` projections in `queryState.Values.projections[]`), but calculations written via file edit do not render in PBI Desktop. This likely requires internal PBI Desktop state initialization that cannot be triggered through file manipulation alone. See B14 in `docs/archive/tests.md`.
 
-If you want to investigate visual calculations, start by reading the relevant bug entries and UAT rounds in `tests.md` to understand what was already tried.
+If you want to investigate visual calculations, start by reading the relevant bug entries and UAT rounds in `docs/archive/tests.md` to understand what was already tried.

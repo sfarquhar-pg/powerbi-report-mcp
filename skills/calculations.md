@@ -28,11 +28,11 @@ Typical expressions: `RUNNINGSUM`, `RANK`, `MOVINGAVERAGE`, `PERCENTOFGRANDTOTAL
 
 ## Why it's parked
 
-Writing the JSON above into a visual directly produces a PBIR file that **loads without error** in Power BI Desktop but does not render the calculation — the column is absent from the matrix and there's no error surface. The prior UAT round (see bug B14 in `tests.md`) concluded that visual calculations require internal Power BI Desktop state initialization (column metadata registration, query plan compilation, client-side formula bar wiring) that cannot be reproduced by file manipulation alone.
+Writing the JSON above into a visual directly produces a PBIR file that **loads without error** in Power BI Desktop but does not render the calculation — the column is absent from the matrix and there's no error surface. The prior UAT round (see bug B14 in `docs/archive/tests.md`) concluded that visual calculations require internal Power BI Desktop state initialization (column metadata registration, query plan compilation, client-side formula bar wiring) that cannot be reproduced by file manipulation alone.
 
 Until that gap is understood, the tools stay unregistered so agents don't silently produce broken reports. The parked code is kept so a future contributor with PBI Desktop instrumentation access can resume the investigation — it is **not** a "just uncomment to enable" situation.
 
-If you're a contributor: start by re-reading the B14 entry in `tests.md`, then compare the JSON the MCP writes with what PBI Desktop writes when you add a visual calculation manually through the formula bar. The divergence (if any) is the starting point.
+If you're a contributor: start by re-reading the B14 entry in `docs/archive/tests.md`, then compare the JSON the MCP writes with what PBI Desktop writes when you add a visual calculation manually through the formula bar. The divergence (if any) is the starting point.
 
 ## Where DAX actually belongs: the semantic model
 
@@ -80,6 +80,6 @@ These are the same references Microsoft Learn links to. Nothing in this skill fi
 ## Related files
 
 - `src/tools/calculations.ts` — parked code (not registered)
-- `tests.md` — B14 entry with the original investigation
+- `docs/archive/tests.md` — B14 entry with the original investigation
 - `CHANGELOG.md` — `v0.5.x` row noting the park
 - `skills/svg-visuals.md` — another DAX-adjacent topic; measures authored for SVG visuals follow the same modeling-MCP pattern
