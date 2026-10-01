@@ -82,17 +82,17 @@ Each command should display a version number. If Windows says `node` is not reco
 
 ## Part 2: Choose a Test Report
 
-The Report MCP changes a **Power BI Project** report folder (`.Report`), not a binary `.pbix` file. For the first test, this guide pulls a separate local copy of the approved workspace report, so it never changes the shared report.
+The Report MCP changes a **Power BI Project** report folder (`.Report`), not a binary `.pbix` file. For the first test, this guide pulls a separate local copy of a workspace report you have access to, so it never changes the shared report.
 
-### Recommended first test: pull the approved workspace report
+### Recommended first test: pull a workspace report
 
-Use the shared report link below as the first report test case:
+Use a report link from your own workspace as the first report test case. The link below uses placeholder IDs (`00000000-0000-0000-0000-000000000000`); replace the workspace ID, report ID and folder ID with the values from your own link wherever they appear in this guide:
 
 ```text
 https://app.powerbi.com/groups/00000000-0000-0000-0000-000000000000/reports/00000000-0000-0000-0000-000000000000?experience=power-bi&subfolderId=<folder-id>
 ```
 
-The link identifies:
+A real link identifies:
 
 | Item | Value |
 |---|---|
