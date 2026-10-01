@@ -40,8 +40,11 @@ and zero second thoughts.
 
 ## Gotchas
 
-- **`continueOnError` only on `pbir_bulk_bind`** — the others abort the whole
-  batch on first error.
+- **`continueOnError` only on `pbir_bulk_bind`** — it controls binding
+  *validation* (pre-flight for the whole batch by default, per entry when set).
+  `pbir_bulk_delete_visuals` and `pbir_bulk_update_format` have no such flag: a
+  failure on one visual is recorded in `errors` and the loop continues with the
+  rest.
 - **Inventory validation strategy** flips between batch mode (default,
   pre-flight failure) and per-entry mode (`continueOnError:true`, individual
   fails reported in `perEntryBindingErrors`).

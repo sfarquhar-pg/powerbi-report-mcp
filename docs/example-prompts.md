@@ -3,7 +3,9 @@
 
 A collection of real-world prompts you can use (or adapt) with the powerbi-report-mcp server. Each example shows the natural language prompt, what happens behind the scenes, and which tools get called.
 
-All examples reference the training report's `financials` table with columns: Country, Segment, Product, Units Sold, Gross Sales, Profit, Date, Month Number, Month Name, Year.
+All examples assume a connected report whose model has a `financials` table with columns: Country, Segment, Product, Units Sold, Gross Sales, Profit, Date, Month Number, Month Name, Year.
+
+> **Tool loading:** all tools are available at startup by default, so none of these examples need `pbir_load_tools`. It is only required when the server runs with `MCP_TOOLS=minimal` (14 default tools); in that mode, activate on-demand tools such as `pbir_set_conditional_format` or `pbir_add_page_filter` first.
 
 ---
 
@@ -82,7 +84,7 @@ All examples reference the training report's `financials` table with columns: Co
 - `pbir_create_page` creates "Product Analysis"
 - `pbir_add_visual` (batch) creates all three visuals:
   - A `barChart` with Category = `financials[Product]`, Y = `financials[Units Sold]` (Sum), Series = `financials[Segment]`
-  - A `scatterChart` with Details = `financials[Product]`, X = `financials[Gross Sales]` (Sum), Y = `financials[Profit]` (Sum)
+  - A `scatterChart` with Category = `financials[Product]`, X = `financials[Gross Sales]` (Sum), Y = `financials[Profit]` (Sum)
   - A `tableEx` with Values bucket containing all five columns
 - Total: 2 tool calls
 
@@ -98,7 +100,7 @@ All examples reference the training report's `financials` table with columns: Co
 
 - `pbir_create_page` creates "Sales Trends"
 - `pbir_add_visual` (batch) creates both visuals:
-  - A `lineClusteredColumnComboChart` with Category = `financials[Month Name]`, ColumnY = `financials[Gross Sales]` (Sum), LineY = `financials[Profit]` (Sum)
+  - A `lineClusteredColumnComboChart` with Category = `financials[Month Name]`, Y = `financials[Gross Sales]` (Sum, columns), Y2 = `financials[Profit]` (Sum, line)
   - A `pivotTable` with Rows = `financials[Country]`, Columns = `financials[Year]`, Values = `financials[Gross Sales]` (Sum)
 - Total: 2 tool calls
 
@@ -160,7 +162,6 @@ All examples reference the training report's `financials` table with columns: Co
 **What happens:**
 
 - `pbir_list_visuals` identifies the table visual
-- `pbir_load_tools` activates `pbir_set_conditional_format` (on-demand tool)
 - `pbir_set_conditional_format` applies a gradient format with formatType="gradient", entity="financials", property2="Profit", isMeasure=false, minColor=#FF6B6B, midColor=#FFD93D, maxColor=#6BCB77
 
 ---
@@ -174,7 +175,6 @@ All examples reference the training report's `financials` table with columns: Co
 **What happens:**
 
 - `pbir_list_visuals` finds the bar chart visual id
-- `pbir_load_tools` activates `pbir_set_datapoint_colors` (on-demand tool)
 - `pbir_set_datapoint_colors` sets per-category colors using categoryEntity="financials", categoryProperty="Product", and the color map for each product value
 
 ---
@@ -190,7 +190,6 @@ All examples reference the training report's `financials` table with columns: Co
 **What happens:**
 
 - `pbir_list_pages` resolves the page id for "Sales Trends"
-- `pbir_load_tools` activates `pbir_add_page_filter` (on-demand tool)
 - `pbir_add_page_filter` creates a relative date filter with filterType="relativeDate", entity="financials", property="Date", period="months", count=12, dateDirection="last"
 
 ---
@@ -220,14 +219,13 @@ All examples reference the training report's `financials` table with columns: Co
 **Sequence of tool calls:**
 
 1. `pbir_list_pages` -- find the page id for "Executive Summary"
-2. `pbir_load_tools(["pbir_duplicate_page", "pbir_add_page_filter", "pbir_set_visual_title"])` -- activate on-demand tools
-3. `pbir_duplicate_page` -- clone the entire page with all visuals; returns the new page id
-4. `pbir_rename_page` -- set the new page name to "Europe Summary" (also activated via pbir_load_tools if not already active)
-5. `pbir_add_page_filter` -- add a categorical filter with entity="financials", property="Country", values=["France", "Germany"]
-6. `pbir_list_visuals` -- find the banner shape visual id on the new page
-7. `pbir_format_visual` or re-create the shape -- update the banner text content to "Europe Summary"
+2. `pbir_duplicate_page` -- clone the entire page with all visuals; returns the new page id
+3. `pbir_rename_page` -- set the new page name to "Europe Summary"
+4. `pbir_add_page_filter` -- add a categorical filter with entity="financials", property="Country", values=["France", "Germany"]
+5. `pbir_list_visuals` -- find the banner shape visual id on the new page
+6. `pbir_format_visual` or re-create the shape -- update the banner text content to "Europe Summary"
 
-Total: 7 tool calls. The duplicated page inherits all visuals, formatting, and data bindings from the original.
+Total: 6 tool calls. The duplicated page inherits all visuals, formatting, and data bindings from the original.
 
 ---
 
@@ -252,10 +250,9 @@ Total: 7 tool calls. The duplicated page inherits all visuals, formatting, and d
    **Page 4 batch:** banner shape + lineClusteredColumnComboChart (Gross Sales columns + Profit line by Month Name) + lineChart (Gross Sales by Date with Year as Series)
    **Page 5 batch:** banner shape + donutChart (Profit by Segment) + barChart (Units Sold by Product, Series=Segment) + 2 cards (filtered totals)
 
-5. `pbir_load_tools(["pbir_add_page_filter"])` -- activate the filter tool
-6. `pbir_add_page_filter` -- add a relative date filter (last 12 months) to the Time Trends page
+5. `pbir_add_page_filter` -- add a relative date filter (last 12 months) to the Time Trends page
 
-**Total: approximately 13 tool calls** to build a fully populated, themed, 5-page report. Using batch pbir_add_visual keeps the call count low. The entire report can be built in a single conversation turn.
+**Total: approximately 12 tool calls** to build a fully populated, themed, 5-page report. Using batch pbir_add_visual keeps the call count low. The entire report can be built in a single conversation turn.
 
 ---
 

@@ -17,7 +17,7 @@ git push                           (you)
   → GitHub looks at .github/workflows/*.yml in that commit
   → Finds ci.yml with `on: push: branches: [master]`
   → Matches → queues a workflow run
-  → Spins up a fresh ubuntu-24.04 VM
+  → Spins up a fresh ubuntu-latest VM
   → Runs the steps in your job
   → Reports each step's pass/fail back to GitHub
   → GitHub aggregates into a single "check status" on the commit
@@ -68,13 +68,20 @@ workflow: "CI"
     step 4: Build TypeScript           (npm run build)
     step 5: Audit skill coverage       (npm run audit:strict)
     step 6: Run wireframe-validator    (npm run test:wireframe)
+    step 7: Run binding-validator      (npm run test:binding)
+    step 8: Run title-extractor test   (npm run test:extract-title)
+    step 9: Run layout-validator       (npm run test:layout)
+    step 10: Run layout-grid suite     (npm run test:grid)
+    step 11: Run slicer-defaults test  (npm run test:slicer)
+    step 12: Audit skills vs schema    (npm run test:schema-docs)
+    step 13: Run report-diff tests     (npm run test:report-diff)
 ```
 
 Rules:
 
 - If **any** step fails, the job fails, and the check is marked `failure`.
-- Subsequent steps are **skipped** by default after a failure. (This is why the first v0.5.9 CI run showed `Build TypeScript` = failure and steps 5–6 = skipped — the build never produced `dist/`, so there was nothing to audit.)
-- If you had multiple jobs (say `build`, `audit`, `validate` as three separate jobs), GitHub would post **one check per job** and the commit page would show three separate lines. Splitting jobs lets them run in parallel and fail independently, but costs more runner minutes. One-job-three-steps is fine for a 17-second workflow.
+- Subsequent steps are **skipped** by default after a failure. (This is why the first v0.5.9 CI run showed `Build TypeScript` = failure and the later steps = skipped — the build never produced `dist/`, so there was nothing to audit.)
+- If you had multiple jobs (say `build`, `audit`, `validate` as three separate jobs), GitHub would post **one check per job** and the commit page would show three separate lines. Splitting jobs lets them run in parallel and fail independently, but costs more runner minutes. One job with several steps is fine for a short workflow.
 
 ---
 
@@ -185,26 +192,33 @@ Each step is a shell session on the runner. The log shows everything stdout and 
 
 - **Build TypeScript fails** → look for lines starting with `error TS` (TypeScript compile errors) or `##[error]`. Usually a type mismatch in `src/`.
 - **Audit skill coverage fails** → look for `MISSING (no backtick mention...)`. Every registered tool must have a backtick mention in at least one `skills/*.md` file. Add the mention, commit, push.
-- **Wireframe validator fails** → look for `Suite result: X/12` where X < 12. The failing cases are named (e.g., `Layout A — 5 KPI cards`). Check whether you touched `src/wireframe-validator.ts` or `scripts/test-wireframe-validator.js`.
+- **Wireframe validator fails** → look for `Suite result: X/N` where X < N. The failing cases are named (e.g., `Layout A — 5 KPI cards`). Check whether you touched `src/wireframe-validator.ts` or `scripts/test-wireframe-validator.js`.
 - **Install dependencies fails** → usually a `package-lock.json` out of sync with `package.json`. Run `npm install --package-lock-only` locally, commit the lock, push.
 
 ### Step 3: reproduce locally
 
-The CI job does exactly three things after install:
+After `npm ci`, the CI job runs these commands:
 
 ```
 npm run build
 npm run audit:strict
 npm run test:wireframe
+npm run test:binding
+npm run test:extract-title
+npm run test:layout
+npm run test:grid
+npm run test:slicer
+npm run test:schema-docs
+npm run test:report-diff
 ```
 
-Run all three with the convenience script:
+Run the full set (plus the other suites and the public-safety audit) with the convenience script:
 
 ```
 npm run test:all
 ```
 
-If all three pass locally but CI is still red, the usual suspects are:
+If these all pass locally but CI is still red, the usual suspects are:
 
 1. **Stale `dist/`** committed to the repo but drifted from `src/`. Delete `dist/`, run `npm run build`, `git add dist/`, commit.
 2. **Case-sensitive import paths** — Linux (CI) cares, Windows/Mac don't. `import { Foo } from "./foo.js"` vs `"./Foo.js"` compiles locally but fails on Linux.

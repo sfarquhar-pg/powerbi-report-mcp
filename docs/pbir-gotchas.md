@@ -3,7 +3,7 @@
 
 Reference document for contributors to `powerbi-report-mcp`. Every gotcha listed here was discovered by writing JSON programmatically, opening the report in Power BI Desktop, observing the failure, then applying the operation manually in PBI Desktop, saving, and reading back the exact JSON PBI Desktop wrote.
 
-Bug IDs (B01--B17) map to the CHANGELOG and docs/archive/tests.md entries.
+Bug IDs (B01--B17) map to the CHANGELOG and the archived `docs/archive/tests.md` entries.
 
 ---
 
@@ -480,9 +480,9 @@ if (f?.Aggregation?.Expression?.Column) {
 
 ### 6.2 Bookmarks
 
-**Status:** Code written, tools not exposed in MCP session.
+**Status:** Registered and available.
 
-Tools (`pbir_list_bookmarks`, `pbir_add_bookmark`, `pbir_rename_bookmark`, `pbir_delete_bookmark`) are registered in source code but not loaded into the MCP session. Parked pending further testing.
+Tools (`pbir_list_bookmarks`, `pbir_add_bookmark`, `pbir_rename_bookmark`, `pbir_delete_bookmark`) are registered in `src/index.ts` (`registerBookmarkTools`) and load with the other tools.
 
 ---
 
@@ -537,7 +537,7 @@ Tools (`pbir_list_bookmarks`, `pbir_add_bookmark`, `pbir_rename_bookmark`, `pbir
 | B08 | Formatting | Raw Column in conditional format -- must wrap in Aggregation |
 | B09 | Formatting | `metadata` selector for all charts -- category charts need `data`/`scopeId` selector |
 | B10 | Visual creation | `stackedBarChart` not a valid type -- use `barChart` |
-| B11 | (internal) | Page visibility format |
+| B11 | Page visibility | Hidden pages use `"HiddenInViewMode"` for the visibility value |
 | B12 | Formatting | Gradient used `ColorLinear` in `visualContainerObjects` -- use `FillRule` in `objects.values` |
 | B13 | Formatting | Property name `transparency` wrong -- use `fillTransparency` |
 | B14 | Parked | Visual calculations correct format but not rendering programmatically |
