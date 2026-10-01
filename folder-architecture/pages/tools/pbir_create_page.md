@@ -48,6 +48,6 @@ Categorical filter (`howCreated: "Drillthrough"`) plus a `pageBinding` of type `
 
 ## See also
 
-- `knowledge/pages.md` — page-type semantics
-- `knowledge/wireframes.md` — canvas constants
+- `skills/pages.md` — page-type semantics
+- `skills/wireframes.md` — canvas constants
 - `../context.md` — room-level orientation

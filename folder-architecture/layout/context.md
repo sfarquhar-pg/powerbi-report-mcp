@@ -15,7 +15,7 @@ delivery to validate. Skip when you're only changing a single visual's position
 
 Build:
 
-1. `knowledge/wireframes.md` for canvas geometry + grid-shape selection
+1. `skills/wireframes.md` for canvas geometry + grid-shape selection
 2. `pbir_layout_grid(planOnly:true)` to preview
 3. `pbir_layout_grid(planOnly:false)` to commit
 
@@ -27,8 +27,8 @@ Validate:
 
 ## Cross-references
 
-- Reads `knowledge/wireframes.md` heavily — canvas constants live there
-- Reads `knowledge/errors.md` for common layout error codes
+- Reads `skills/wireframes.md` heavily — canvas constants live there
+- Reads `skills/errors.md` for common layout error codes
 - Pairs with `visuals/pbir_add_visual` (which also runs the layout validator internally)
 
 ## Canvas constants (CODE-only — replicated here for visibility)

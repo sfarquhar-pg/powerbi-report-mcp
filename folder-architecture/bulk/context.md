@@ -20,9 +20,9 @@ a small number — use the single-visual tools instead to keep responses small.
 
 ## Cross-references
 
-- Reads `knowledge/visuals.md` for binding semantics
-- Reads `knowledge/formatting.md` for FormatCategory payload
-- Reads `knowledge/themes-per-visual.md` to pick the right properties per type
+- Reads `skills/visuals.md` for binding semantics
+- Reads `skills/formatting.md` for FormatCategory payload
+- Reads `skills/themes-per-visual.md` to pick the right properties per type
 
 ## Safety gates (CODE-only, not replicable in markdown)
 

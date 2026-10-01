@@ -26,4 +26,4 @@
 ## Categorization note
 
 Lives in `report.ts` but operates per-page on a `source`/`target` visual pair —
-filed under `visuals/` here. Could equally live in `filters/`.
+filed under `visuals/` here.

@@ -39,5 +39,5 @@
 
 ## See also
 
-- `knowledge/themes.md`
+- `skills/themes.md`
 - `pbir_lookup_theme_property.md` (in this folder)

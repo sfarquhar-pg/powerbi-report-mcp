@@ -32,8 +32,8 @@ Reload (rare, destructive):
 
 ## Cross-references
 
-- Reads `knowledge/report.md` for `.Report`/.SemanticModel layout
-- Reads `knowledge/report-design.md` for delivery-readiness criteria
+- Reads `skills/report.md` for `.Report`/.SemanticModel layout
+- Reads `skills/report-design.md` for delivery-readiness criteria
 - Pairs with `meta/` for session-orient tools
 
 ## Gotchas

@@ -36,19 +36,19 @@ Add-from-scratch:
 Modify-existing:
 
 1. `pbir_get_visual` (slim) to inspect
-2. `pbir_update_visual_bindings` or `pbir_format_visual` (the latter lives in
-   `formatting/`)
+2. `pbir_update_visual_bindings` or `pbir_format_visual` (the latter is covered in
+   `skills/formatting.md`)
 3. `pbir_set_visual_title` / sort / colors as needed
 
 ## Cross-references
 
-- Reads `knowledge/visuals.md` for visualType selection
-- Reads `knowledge/slicers.md` for slicer-specific bucket and selection logic
-- Reads `knowledge/shapes.md` for shape/rectangle/line specifics
-- Reads `knowledge/svg-visuals.md` for image visuals
-- Reads `knowledge/themes-per-visual.md` for which format properties belong on which visualType
-- Pairs with `formatting/` for `pbir_format_visual`, `pbir_apply_theme`
-- Pairs with `bulk/` for fan-out across many visuals
+- Reads `skills/visuals.md` for visualType selection
+- Reads `skills/slicers.md` for slicer-specific bucket and selection logic
+- Reads `skills/shapes.md` for shape/rectangle/line specifics
+- Reads `skills/svg-visuals.md` for image visuals
+- Reads `skills/themes-per-visual.md` for which format properties belong on which visualType
+- Pairs with `skills/formatting.md` for `pbir_format_visual`, `pbir_apply_theme`
+- Pairs with `bulk/context.md` for fan-out across many visuals
 - Pairs with `layout/` for placement math
 
 ## Gotchas

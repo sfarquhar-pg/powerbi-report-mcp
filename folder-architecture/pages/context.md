@@ -33,8 +33,8 @@ Typical first-page-of-report flow:
 
 ## Cross-references
 
-- Reads `knowledge/pages.md` for page-type semantics
-- Reads `knowledge/wireframes.md` for canvas geometry (1280×720, margins, gaps)
+- Reads `skills/pages.md` for page-type semantics
+- Reads `skills/wireframes.md` for canvas geometry (1280×720, margins, gaps)
 - Pairs with `layout/` for grid scaffolding and validation
 - Pairs with `visuals/` for placing content on the page
 

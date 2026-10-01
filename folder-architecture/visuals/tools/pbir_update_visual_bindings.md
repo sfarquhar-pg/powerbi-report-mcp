@@ -39,9 +39,9 @@ sibling `.SemanticModel/`, strict-vs-warn driven by param + env.
 ## Gotchas
 
 - "Replaces entirely" — passing a partial set wipes the omitted buckets.
-- For multi-visual rebinds, prefer `bulk/pbir_bulk_bind`.
+- For multi-visual rebinds, prefer `pbir_bulk_bind` (see `bulk/context.md`).
 
 ## See also
 
-- `bulk/tools/pbir_bulk_bind.md`
+- `docs/archive/folder-architecture/bulk/tools/pbir_bulk_bind.md`
 - `../context.md`
