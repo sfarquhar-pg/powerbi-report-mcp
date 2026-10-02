@@ -108,7 +108,7 @@ for what's there and why.
 ## Backlog hygiene
 
 - When an item ships, **delete it from this file** and ensure the change is
-  reflected in `CHANGELOG.md` / `changelog/<version>.md`.
+  reflected in `../../CHANGELOG.md` / `changelog/<version>.md`.
 - New ideas land here, not in the changelog. Don't bloat the changelog
   with speculation.
 - If an item sits in the backlog for >2 minor versions without progress,

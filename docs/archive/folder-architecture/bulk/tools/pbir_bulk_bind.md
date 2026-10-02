@@ -42,4 +42,4 @@ One of the 13 default-loaded tools.
 ## See also
 
 - `visuals/tools/pbir_update_visual_bindings.md` — single-visual variant
-- `../context.md` — safety gates
+- `../../../../../folder-architecture/bulk/context.md` — safety gates

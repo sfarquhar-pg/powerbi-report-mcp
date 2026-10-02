@@ -26,4 +26,4 @@
 ## See also
 
 - `visuals/tools/pbir_delete_visual.md` — single
-- `../context.md` — safety gates
+- `../../../../../folder-architecture/bulk/context.md` — safety gates
