@@ -5,7 +5,7 @@
 
 `powerbi-report-mcp` is an MCP (Model Context Protocol) server that enables AI agents to create and modify Power BI reports in PBIR format. It communicates over **stdio** using the `@modelcontextprotocol/sdk`, making it agent-agnostic -- any MCP-compatible client (Claude Code, Copilot, custom agents) can drive it.
 
-The server exposes 62 report tools for local PBIR authoring, validation, Fabric authentication, access auditing, live error review, folder resolution, and confirmed service publishing. All tool inputs are validated with Zod schemas. All tool handlers are wrapped in a `safe()` error boundary so that failures return structured `isError` responses instead of crashing the process.
+The server exposes 66 report tools (plus the `pbir_load_tools` meta-tool) for local PBIR authoring, validation, Fabric authentication, access auditing, live error review, folder resolution, and confirmed service publishing. All tool inputs are validated with Zod schemas. All tool handlers are wrapped in a `safe()` error boundary so that failures return structured `isError` responses instead of crashing the process.
 
 **Key dependencies:** `@modelcontextprotocol/sdk` (MCP protocol), `zod` (schema validation). No Power BI SDK is used -- the server reads and writes PBIR JSON files directly on disk.
 
@@ -32,6 +32,13 @@ src/
                         Exports: buildFullData(), generateHTML(), registerModelUsageTool(),
                         findSemanticModelPath(), invalidateCache(), startWatchers().
 
+  styleAudit.ts         Style consistency auditor behind `pbir_audit_style_consistency`.
+  styleMirror.ts        Extracts a style profile from a report definition and applies it.
+  wireframe-validator.ts  Layout validator behind `pbir_validate_wireframe`.
+  fabricApi.ts, fabricAuth.ts, fabricAudit.ts, reportDefinition.ts, reportDiff.ts
+                        Fabric REST client, interactive sign-in, access audit,
+                        definition materialisation and report diffing.
+
   helpers/
     createVisual.ts     Visual creation logic: parseFieldSpec(), createAndSaveVisual(),
                         Zod schemas (FieldSpecSchema, VisualSpecSchema, etc.),
@@ -50,16 +57,21 @@ src/
   tools/
     report.ts           Page and report management tools (19 tools).
     visuals.ts          Visual CRUD tools (8 tools).
-    format.ts           Formatting and conditional formatting tools (4 tools).
+    format.ts           Formatting, sort and conditional formatting tools (6 tools).
     bindings.ts         Data binding tools (1 tool).
-    themes.ts           Report-level theme tools (5 tools).
+    themes.ts           Report-level theme tools (6 tools).
     filters.ts          Filter tools (4 tools).
     bulk.ts             Bulk operations (3 tools).
     bookmarks.ts        Bookmark CRUD (4 tools).
     guide.ts            Knowledge layer (1 tool). Serves domain knowledge
-                        on demand — topics: svg-visuals, report-design.
+                        on demand — topics are discovered from skills/*.md.
     calculations.ts     Visual calculations (3 tools, parked -- PBI Desktop
                         doesn't render programmatically-created visual calcs).
+    fabric.ts           Fabric authentication, access audit, pull, diff, mirror
+                        style and publish tools (9 tools).
+    validate.ts         `pbir_validate_wireframe` and `pbir_audit_style_consistency`.
+    layoutGrid.ts       `pbir_layout_grid` page planner.
+    themeLookup.ts      `pbir_lookup_theme_property`.
 ```
 
 ---
@@ -155,7 +167,7 @@ The class also includes bookmark helpers (`getBookmarksMetadata`, `saveBookmark`
 
 ### Registration Pattern
 
-Each tool module exports a `register*Tools(server, ctx)` function that calls `server.tool()` for each tool it provides:
+Each tool module exports a `register*Tools(server, ctx)` function that calls `server.tool()` for each tool it provides. In `index.ts`, `server.tool()` is a back-compat shim that routes each call to the SDK's `server.registerTool()` (which also supplies each tool's `outputSchema`):
 
 ```ts
 server.tool(
@@ -168,18 +180,7 @@ server.tool(
 
 ### The safe() Wrapper
 
-Every tool handler is automatically wrapped with `safe()` before registration. The `server.tool` method is monkey-patched in `index.ts` to intercept all registrations:
-
-```ts
-(server as any).tool = (name, desc, schema, handler) => {
-  const safeHandler = safe(handler);
-  if (activeTools.has(name)) {
-    _tool(name, desc, schema, safeHandler);
-  } else {
-    deferredTools.set(name, { desc, schema, handler: safeHandler });
-  }
-};
-```
+Every tool handler is automatically wrapped with `safe()` before registration. The `server.tool` shim in `index.ts` wraps each handler with `safe()` and registers it immediately when the tool is in the active set. Otherwise it stores the registration in `deferredTools` so `pbir_load_tools` can activate it later.
 
 `safe()` catches any exception thrown by the handler and returns a structured error response:
 
@@ -200,12 +201,12 @@ function safe<T>(fn: (args: T) => Promise<unknown>) {
 
 ### Smart Tool Loading
 
-To reduce token overhead for LLM clients, the server loads only a default subset of 11 tools at startup. The remaining tools are stored in `deferredTools` and can be activated on demand.
+To reduce token overhead for LLM clients, the server loads all tools by default. Setting `MCP_TOOLS=minimal` loads only the 14 default tools at startup; the remaining tools are stored in `deferredTools` and can be activated on demand.
 
-**DEFAULT_TOOLS** (always loaded):
-`pbir_set_report`, `pbir_list_pages`, `pbir_list_visuals`, `pbir_create_page`, `pbir_add_visual`, `pbir_get_visual`, `pbir_format_visual`, `pbir_update_visual_bindings`, `pbir_set_report_theme`, `pbir_bulk_bind`, `pbir_model_usage`
+**DEFAULT_TOOLS** (defined in `src/default-tools.ts`; the startup set in minimal mode):
+`pbir_set_report`, `pbir_list_pages`, `pbir_list_visuals`, `pbir_create_page`, `pbir_add_visual`, `pbir_get_visual`, `pbir_format_visual`, `pbir_update_visual_bindings`, `pbir_set_report_theme`, `pbir_bulk_bind`, `pbir_model_usage`, `pbir_reload_report`, `pbir_fabric_auth`, `pbir_lookup_theme_property`
 
-**ALL_TOOLS** -- the canonical list of 62 report tool names.
+**ALL_TOOLS** -- the canonical list of 66 report tool names.
 
 **Activation mechanisms:**
 
@@ -217,11 +218,11 @@ To reduce token overhead for LLM clients, the server loads only a default subset
    deferredTools.delete(name);
    ```
 
-2. **`MCP_TOOLS=all` environment variable** -- when set, all tools load at startup. The check:
+2. **Default loading** -- unless `MCP_TOOLS=minimal` is set, all tools load at startup (`MCP_TOOLS=all` is still accepted as a legacy alias). The check:
 
    ```ts
-   const loadAll = (process.env.MCP_TOOLS || "").toLowerCase() === "all";
-   const activeTools = new Set(loadAll ? Object.keys(ALL_TOOLS) : DEFAULT_TOOLS);
+   const loadMinimal = (process.env.MCP_TOOLS || "").toLowerCase() === "minimal";
+   const activeTools = new Set<string>(loadMinimal ? DEFAULT_TOOLS : ALL_TOOLS);
    ```
 
 ---
@@ -265,7 +266,7 @@ To reduce token overhead for LLM clients, the server loads only a default subset
 | `pbir_duplicate_visual` | Clone a visual, optionally to another page |
 | `pbir_change_visual_type` | Change a visual's type while keeping bindings |
 
-### format.ts (4 tools)
+### format.ts (6 tools)
 
 | Tool | Purpose |
 |------|---------|
@@ -274,6 +275,7 @@ To reduce token overhead for LLM clients, the server loads only a default subset
 | `pbir_set_datapoint_colors` | Set series or category data point colors |
 | `pbir_set_conditional_format` | Apply rules-based or gradient conditional formatting |
 | `pbir_apply_theme` | Apply a named theme preset to all visuals on a page |
+| `pbir_set_visual_sort` | Set or change a visual's sort order |
 
 ### bindings.ts (1 tool)
 
@@ -281,7 +283,7 @@ To reduce token overhead for LLM clients, the server loads only a default subset
 |------|---------|
 | `pbir_update_visual_bindings` | Replace a visual's data bindings entirely, rebuild sort and filters |
 
-### themes.ts (5 tools)
+### themes.ts (6 tools)
 
 | Tool | Purpose |
 |------|---------|
@@ -290,6 +292,7 @@ To reduce token overhead for LLM clients, the server loads only a default subset
 | `pbir_remove_report_theme` | Unlink the custom theme from report.json |
 | `pbir_diff_report_theme` | Compare a proposed theme against the current one |
 | `pbir_list_report_themes` | List theme files in StaticResources |
+| `pbir_audit_theme_compliance` | Scan visuals for formatting overrides that conflict with the theme |
 
 ### filters.ts (4 tools)
 
@@ -338,9 +341,9 @@ To reduce token overhead for LLM clients, the server loads only a default subset
 
 | Tool | Purpose |
 |------|---------|
-| `pbir_guide` | Serve domain knowledge on demand — topics: `svg-visuals`, `report-design` |
+| `pbir_guide` | Serve domain knowledge on demand — topics are discovered from `skills/*.md` |
 
-The guide tool provides focused, actionable knowledge to help AI agents make better decisions when orchestrating multi-tool workflows. Topics include SVG visual DAX templates, binding rules, and report design principles. New topics can be added by extending the `topics` map in `registerGuideTool()`.
+The guide tool provides focused, actionable knowledge to help AI agents make better decisions when orchestrating multi-tool workflows. Topics include SVG visual DAX templates, binding rules, and report design principles. New topics are added by dropping a markdown file in `skills/`.
 
 ### calculations.ts (3 tools, parked)
 

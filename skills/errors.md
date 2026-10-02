@@ -16,8 +16,8 @@ Read this once. The codes don't change between calls. When you see one, look it 
 | `out_of_bounds_bottom` | y + height exceeds canvas bottom minus margin | Reduce height OR shift y up. `limits.maxBottomEdge` is the cap. |
 | `out_of_bounds_negative` | x or y < 0 | Set both ≥ 0. Non-banner content starts at x≥20, y≥57. |
 | `overlap` | Two visual rects intersect | Move one. Maintain a 5px gap between adjacent visuals. |
-| `wrong_left_margin` | Leftmost visual in a row doesn't sit at x=20 | Set x=20 on the leftmost visual. |
-| `wrong_right_margin` | Rightmost visual doesn't end at x+width=1260 | Adjust width so x+width=1260. |
+| `wrong_left_margin` | Leftmost visual in a row doesn't sit at x=15 | Set x=15 on the leftmost visual. |
+| `wrong_right_margin` | Rightmost visual doesn't end at x+width=1265 | Adjust width so x+width=1265. |
 | `wrong_bottom_margin` | Bottom row ends past y+height=714 | Bring the bottom row up; max y+height=714. |
 | `wrong_horizontal_gap` | Gap between adjacent visuals in a row ≠ 5px | Space them so right-edge of A → left-edge of B = 5px. |
 | `wrong_vertical_gap` | Gap between rows ≠ 5px | Same rule, vertical. |

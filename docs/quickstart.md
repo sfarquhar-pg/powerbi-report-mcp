@@ -47,7 +47,7 @@ Config file: `%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Cl
       "command": "node",
       "args": [
         "C:\\path\\to\\powerbi-report-mcp\\dist\\index.js",
-        "C:\\path\\to\\pbi report\\training.Report"
+        "C:\\path\\to\\MyReport.Report"
       ]
     }
   }
@@ -57,7 +57,7 @@ Config file: `%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Cl
 ### Claude Code
 
 ```bash
-claude mcp add powerbi-report-mcp -- node "C:\path\to\powerbi-report-mcp\dist\index.js" "C:\path\to\pbi report\training.Report"
+claude mcp add powerbi-report-mcp -- node "C:\path\to\powerbi-report-mcp\dist\index.js" "C:\path\to\MyReport.Report"
 ```
 
 ### Cursor
@@ -71,16 +71,16 @@ Config file: `~/.cursor/mcp.json` or `.cursor/mcp.json` in your project root.
       "command": "node",
       "args": [
         "C:\\path\\to\\powerbi-report-mcp\\dist\\index.js",
-        "C:\\path\\to\\pbi report\\training.Report"
+        "C:\\path\\to\\MyReport.Report"
       ]
     }
   }
 }
 ```
 
-### Load all tools at startup (optional)
+### Load fewer tools at startup (optional)
 
-By default, only 10 core tools are loaded to keep token overhead low (~2,900 tokens). To load all 42 tools at startup, add an `env` block:
+By default all 66 report tools load at startup. To load only the 14 default tools and keep token overhead low, add an `env` block (the rest activate on demand through `pbir_load_tools`):
 
 ```json
 {
@@ -89,9 +89,9 @@ By default, only 10 core tools are loaded to keep token overhead low (~2,900 tok
       "command": "node",
       "args": [
         "C:\\path\\to\\powerbi-report-mcp\\dist\\index.js",
-        "C:\\path\\to\\pbi report\\training.Report"
+        "C:\\path\\to\\MyReport.Report"
       ],
-      "env": { "MCP_TOOLS": "all" }
+      "env": { "MCP_TOOLS": "minimal" }
     }
   }
 }
@@ -103,9 +103,9 @@ The second argument (the report path) is optional. You can omit it and connect a
 
 ---
 
-## Step 3: Connect to the Sample Report (30 sec)
+## Step 3: Connect to Your Report (30 sec)
 
-The repo includes a sample report at `pbi report/training.Report` with a `financials` table containing: Country, Segment, Product, Units Sold, Gross Sales, Profit, Date, Month Number, Month Name, Year.
+The prompts below assume a report whose semantic model has a `financials` table containing: Country, Segment, Product, Units Sold, Gross Sales, Profit, Date, Month Number, Month Name, Year.
 
 If you set the report path in config (Step 2), you are already connected. Verify by asking:
 
@@ -113,7 +113,7 @@ If you set the report path in config (Step 2), you are already connected. Verify
 
 If you did not set a path in config, connect at runtime:
 
-> Connect to C:\path\to\pbi report\training.Report
+> Connect to C:\path\to\MyReport.Report
 
 You should see a list of existing pages in the report.
 
@@ -150,6 +150,6 @@ You should see the banner, three KPI cards with aggregated values, and a bar cha
 ## What's Next?
 
 - **More prompts:** See [example-prompts.md](example-prompts.md) for a full library of prompts covering charts, formatting, conditional formatting, filters, theming, and multi-page reports.
-- **Full tool reference:** See the [README](../README.md) for all 42 tools, formatting options, and supported visual types.
-- **Smart tool loading:** By default, 10 core tools are loaded. Use `pbir_load_tools` mid-session to activate additional tools (filters, themes, conditional formatting, etc.) on demand without restarting.
+- **Full tool reference:** See the [README](../README.md) for all 66 tools, formatting options, and supported visual types.
+- **Smart tool loading:** All tools are loaded by default. With `MCP_TOOLS=minimal`, 14 default tools load at startup and you can use `pbir_load_tools` mid-session to activate additional tools (filters, themes, conditional formatting, etc.) on demand without restarting.
 - **Semantic model queries:** Pair with Microsoft's [powerbi-modeling-mcp](https://github.com/microsoft/powerbi-modeling-mcp) to query your data model, inspect tables and columns, and write DAX -- all from the same AI conversation.

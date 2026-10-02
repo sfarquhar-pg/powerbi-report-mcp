@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node.js">
   <img src="https://img.shields.io/badge/MCP-1.12-purple.svg" alt="MCP SDK">
   <img src="https://img.shields.io/badge/Power%20BI-PBIR-yellow.svg" alt="PBIR Format">
-  <img src="https://img.shields.io/badge/tools-64-orange.svg" alt="64 Tools">
+  <img src="https://img.shields.io/badge/tools-67-orange.svg" alt="67 Tools">
 </p>
 
 <p align="center">
@@ -29,6 +29,16 @@
 <!-- TODO: add hero screenshot of a generated report page in Power BI Desktop -->
 
 ---
+
+### What's new in 0.10 – 0.12
+
+- **Component fit engine, wrap-aware text fit and typography roles** (v0.12.0) — `pbir_audit_style_consistency` gains `COMPONENT_UNDERSIZED`, `TEXT_OVERFLOW` and `TYPO_INCONSISTENT` checks
+- **Theme-driven typography** (v0.11.1) — `MCP_FONT_DEFAULTS=off` stops implicit font injection so themes drive typography
+- **`pbir_audit_style_consistency`** (v0.11.0) — read-only styling gate for card overflow, unlabeled slicers, font drift, measure-filter mismatches and inconsistent borders
+- **Drillthrough pages importable by Fabric** (v0.10.3) — `pbir_create_page` writes the enhanced-PBIR drillthrough shape
+- **`pbir_fabric_mirror_style`** (v0.10.0 – 0.10.2) — mirror the look of an existing report from its link
+
+See [CHANGELOG.md](CHANGELOG.md) for the full history.
 
 ### What's new in 0.9
 
@@ -159,7 +169,7 @@ claude mcp add powerbi-report-mcp node C:\path\to\powerbi-report-mcp\dist\index.
 
 #### Optional: opt into minimal tool loading
 
-For long Claude Code / Cowork sessions where catalog tokens matter, set `MCP_TOOLS=minimal` to load only the 14 default tools at startup (the remaining 48 activate on demand via `pbir_load_tools`):
+For long Claude Code / Cowork sessions where catalog tokens matter, set `MCP_TOOLS=minimal` to load only the 14 default tools at startup (the remaining 52 activate on demand via `pbir_load_tools`):
 
 ```jsonc
 {
@@ -177,7 +187,7 @@ For long Claude Code / Cowork sessions where catalog tokens matter, set `MCP_TOO
 
 Trade-off summary (full breakdown in [Smart Tool Loading](#smart-tool-loading) below):
 
-- **Default (load-all)** — All 62 report tools available immediately. Best for unpredictable/exploratory sessions and clients that snapshot the tool list at startup.
+- **Default (load-all)** — All 66 report tools available immediately. Best for unpredictable/exploratory sessions and clients that snapshot the tool list at startup.
 - **`MCP_TOOLS=minimal`** — 14 default tools at startup; others activatable via `pbir_load_tools`. Best for known-narrow workflows. Requires MCP client support for `notifications/tools/list_changed` to surface activated tools mid-session — Claude Code/Desktop don't refresh; Cowork may; verify before relying.
 
 ### 3b. Cowork plugin
@@ -237,9 +247,9 @@ If the path is invalid the server logs to stderr and continues running unbound (
 
 ## Smart Tool Loading
 
-By default all **62 report tools load at startup** — this is the most compatible configuration, and what you want for Claude Desktop and most other MCP clients whose tool catalog is a snapshot taken at session start.
+By default all **66 report tools load at startup** — this is the most compatible configuration, and what you want for Claude Desktop and most other MCP clients whose tool catalog is a snapshot taken at session start.
 
-For token-sensitive setups (e.g. Claude Code with large prompt budgets on dev machines), you can opt into the **minimal** mode — only **14 core tools** load at startup, and the LLM activates more on-demand via `pbir_load_tools`:
+For token-sensitive setups (e.g. Claude Code with large prompt budgets on dev machines), you can opt into the **minimal** mode — only **14 default tools** load at startup, and the LLM activates more on-demand via `pbir_load_tools`:
 
 ```json
 "env": { "MCP_TOOLS": "minimal" }
@@ -247,15 +257,15 @@ For token-sensitive setups (e.g. Claude Code with large prompt budgets on dev ma
 
 ```mermaid
 graph TD
-    subgraph DEFAULT["11 Core Tools — always loaded in both modes"]
+    subgraph DEFAULT["14 Default Tools — loaded in minimal mode (all tools load by default)"]
         A1[pbir_set_report] --- A2[pbir_list_pages] --- A3[pbir_list_visuals] --- A4[pbir_create_page] --- A5[pbir_add_visual]
         B1[pbir_get_visual] --- B2[pbir_format_visual] --- B3[pbir_update_visual_bindings] --- B4[pbir_set_report_theme] --- B5[pbir_bulk_bind]
-        C1[pbir_model_usage]
+        C1[pbir_model_usage] --- C2[pbir_reload_report] --- C3[pbir_fabric_auth] --- C4[pbir_lookup_theme_property]
     end
 
     LT[pbir_load_tools -- always available]
 
-    subgraph ONDEMAND["43 On-Demand Tools"]
+    subgraph ONDEMAND["52 On-Demand Tools"]
         C1[pbir_delete_page] --- C2[pbir_rename_page] --- C3[pbir_duplicate_page] --- C4[pbir_move_visual] --- C5[pbir_delete_visual]
         D1[pbir_set_datapoint_colors] --- D2[pbir_set_conditional_format] --- D3[pbir_add_page_filter] --- D4[pbir_set_visual_sort] --- D5[guide]
         E1[pbir_list_bookmarks] --- E2[pbir_set_page_background] --- E3[...]
@@ -270,9 +280,9 @@ graph TD
 
 | Mode | Tools at Startup | Token Overhead | Use Case |
 |------|------------------|----------------|----------|
-| `default` | 62 + `pbir_load_tools` | varies by client | Claude Desktop, most clients, first-time users |
+| `default` | 66 + `pbir_load_tools` | varies by client | Claude Desktop, most clients, first-time users |
 | `MCP_TOOLS=minimal` | 14 + `pbir_load_tools` | reduced | Claude Code / clients that refresh the tool list mid-session |
-| `MCP_TOOLS=all` *(legacy alias)* | 62 + `pbir_load_tools` | varies by client | Same as default; kept for backward-compat |
+| `MCP_TOOLS=all` *(legacy alias)* | 66 + `pbir_load_tools` | varies by client | Same as default; kept for backward-compat |
 
 > Default is "load everything" because Claude Desktop snapshots the MCP tool catalog at session start and never refreshes it — tools activated mid-session via `pbir_load_tools` would otherwise be invisible to the model. Clients that honour `tools/list_changed` notifications (Claude Code, Cowork) can opt into `MCP_TOOLS=minimal` to claw back ~13k tokens.
 
@@ -311,7 +321,7 @@ With `pbir_model_usage` always available, the LLM can call it first and see the 
 
 The MCP tool gives **Claude** that understanding *before* it mutates anything — what prevents "oops" deletes. The tool returns a slim JSON response (~7K tokens) by default so it's cheap to call before every destructive operation.
 
-### On-Demand Tools (43)
+### On-Demand Tools (52)
 
 <details>
 <summary><b>Report & Page Management</b> — 17 tools</summary>
@@ -322,7 +332,6 @@ The MCP tool gives **Claude** that understanding *before* it mutates anything �
 | `pbir_reload_report` | Reopen report in PBI Desktop |
 | `pbir_get_report_settings` | Read report-level settings |
 | `pbir_update_report_settings` | Merge new report settings |
-| `get_page_summary` | All pages + visuals in one call |
 | `pbir_delete_page` | Delete a page and its visuals |
 | `pbir_rename_page` | Rename a page |
 | `pbir_duplicate_page` | Clone a page with all visuals |
@@ -409,7 +418,7 @@ The MCP tool gives **Claude** that understanding *before* it mutates anything �
 
 | Tool | Description |
 |------|-------------|
-| `pbir_guide` | Domain knowledge for PBI development — topics: `svg-visuals`, `report-design` |
+| `pbir_guide` | Domain knowledge for PBI development — topics are discovered live from `skills/*.md` (call with `topic: "list"`) |
 
 The `pbir_guide` tool provides focused, actionable knowledge to help AI agents make better decisions. Instead of loading large skill files into every session, agents call `pbir_guide("topic")` on demand. The SVG visuals topic includes 4 DAX templates, binding rules, and workflow steps.
 </details>
@@ -586,9 +595,11 @@ powerbi-report-mcp/
 │   ├── index.ts              # Server entry, smart tool loading, safe() wrapper
 │   ├── pbir.ts               # PbirProject — PBIR file I/O abstraction
 │   ├── context.ts            # ServerContext interface
+│   ├── styleAudit.ts         # Style consistency audit
+│   ├── wireframe-validator.ts # Layout validator
 │   ├── model-usage.ts        # Model usage analysis — three-tier classification, UDF parsing, conditional formatting
 │   ├── tools/
-│   │   ├── report.ts         # Page & report management (20 tools)
+│   │   ├── report.ts         # Page & report management (19 tools)
 │   │   ├── visuals.ts        # Visual CRUD (8 tools)
 │   │   ├── format.ts         # Formatting, sort & colors (6 tools)
 │   │   ├── bindings.ts       # Data binding (1 tool)
@@ -596,7 +607,12 @@ powerbi-report-mcp/
 │   │   ├── filters.ts        # Page/visual filters (4 tools)
 │   │   ├── bulk.ts           # Bulk operations (3 tools)
 │   │   ├── bookmarks.ts      # Bookmark CRUD (4 tools)
-│   │   └── guide.ts          # Knowledge layer (1 tool, 2 topics)
+│   │   ├── calculations.ts   # Visual calculation tools (parked, not registered)
+│   │   ├── fabric.ts         # Fabric / Power BI Service pull and publish
+│   │   ├── layoutGrid.ts     # Layout grid planner
+│   │   ├── themeLookup.ts    # Theme property lookup
+│   │   ├── validate.ts       # Wireframe / layout validation
+│   │   └── guide.ts          # Knowledge layer (1 tool, topics discovered from skills/*.md)
 │   └── helpers/
 │       ├── createVisual.ts   # Visual creation engine
 │       ├── formatting.ts     # PBIR formatting builder
@@ -659,8 +675,8 @@ MyProject.Report/
 
 | Mode | Tools Loaded | Tokens/Turn | Cost per 10-Page Report |
 |------|-------------|-------------|------------------------|
-| **Default** | 11 | ~3,100 | $0.01 – $0.45 |
-| **All** | 48 | ~14,500 | $0.02 – $2.50 |
+| **Minimal** (`MCP_TOOLS=minimal`) | 14 | ~3,500 | $0.01 – $0.45 |
+| **Default (all)** | 66 | see [skills/token-usage.md](skills/token-usage.md) | $0.02 – $2.50 |
 
 <details>
 <summary><b>Detailed API cost breakdown (April 2026 pricing)</b></summary>
@@ -711,7 +727,7 @@ The MCP is built on the standard MCP protocol. **Currently verified against:**
 | **[docs/quickstart.md](docs/quickstart.md)** | 5-minute setup guide |
 | **[docs/example-prompts.md](docs/example-prompts.md)** | 15 example prompts |
 | **[docs/visual-types.md](docs/visual-types.md)** | Visual type reference + formatting containers per type |
-| **[docs/wireframes.md](docs/wireframes.md)** | Layout guide — zones, spacing, 3 sample layouts with exact positions |
+| **[skills/wireframes.md](skills/wireframes.md)** | Layout guide — zones, spacing, 3 sample layouts with exact positions |
 | **[docs/pbir-gotchas.md](docs/pbir-gotchas.md)** | PBIR schema discoveries |
 | **[ARCHITECTURE.md](ARCHITECTURE.md)** | Codebase architecture |
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to contribute |

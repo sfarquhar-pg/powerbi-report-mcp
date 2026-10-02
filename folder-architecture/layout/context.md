@@ -15,7 +15,7 @@ delivery to validate. Skip when you're only changing a single visual's position
 
 Build:
 
-1. `knowledge/wireframes.md` for canvas geometry + grid-shape selection
+1. `skills/wireframes.md` for canvas geometry + grid-shape selection
 2. `pbir_layout_grid(planOnly:true)` to preview
 3. `pbir_layout_grid(planOnly:false)` to commit
 
@@ -27,22 +27,23 @@ Validate:
 
 ## Cross-references
 
-- Reads `knowledge/wireframes.md` heavily — canvas constants live there
-- Reads `knowledge/errors.md` for common layout error codes
+- Reads `skills/wireframes.md` heavily — canvas constants live there
+- Reads `skills/errors.md` for common layout error codes
 - Pairs with `visuals/pbir_add_visual` (which also runs the layout validator internally)
 
 ## Canvas constants (CODE-only — replicated here for visibility)
 
 ```
 canvas:        1280 × 720
-marginLeft:    20    (knowledge/wireframes.md treats this as 15 in some places — read the live constants)
-marginRight:   20
-marginTop:     ?     (banner-aware)
+marginLeft:    15
+marginRight:   15
+marginTop:     0     (banner-aware)
 marginBottom:  6
 gap:           5
 banner:        first content row when reserveBannerRow:true
 ```
 
-The authoritative values live in `src/helpers/layoutValidation.ts` and
-`src/tools/layoutGrid.ts` (`CANVAS` constant). Markdown can mirror the rules;
+The authoritative values live in the `CANVAS` constant in
+`src/wireframe-validator.ts`, which `src/helpers/layoutValidation.ts` and
+`src/tools/layoutGrid.ts` import. Markdown can mirror the rules;
 only the validator enforces them.

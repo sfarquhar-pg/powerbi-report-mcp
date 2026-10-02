@@ -29,7 +29,7 @@
 ## Categorization note
 
 Filed under `themes/` because of the name. Mechanically a bulk-format operation —
-could live under `formatting/` or `bulk/`.
+could equally be filed with the bulk tools (see `bulk/context.md`).
 
 ## Gotchas
 

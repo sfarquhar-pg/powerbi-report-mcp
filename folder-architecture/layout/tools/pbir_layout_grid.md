@@ -19,14 +19,14 @@
 | includeTypes | boolean | no | false | Return full `{visualId,visualType,slotRef,x,y,width,height}` per cell |
 
 `Cell` shape includes a row/col location, optional spans, and a full
-`VisualSpecSchema` payload (see `visuals/pbir_add_visual.md`).
+`VisualSpecSchema` payload (see `visuals/tools/pbir_add_visual.md`).
 
 ## Output (planOnly)
 
 ```jsonc
 {
   "success": true,
-  "plan": [ { "slotRef": "r0c0", "x":20, "y":50, "width":..., "height":..., "visualType":"barChart" } ],
+  "plan": [ { "slotRef": "r0c0", "x":15, "y":57, "width":..., "height":..., "visualType":"barChart" } ],
   "canvas": { /* getCanvasSummary() */ },
   "grid": { "rows":2, "cols":3, "gaps":5, "margins":{...}, "reserveBannerRow":false }
 }
@@ -51,6 +51,6 @@ Adds `"created": [...]` and may include `bindingAutoCorrections`, `bindingValida
 
 ## See also
 
-- `knowledge/wireframes.md` — grid-shape selection
+- `skills/wireframes.md` — grid-shape selection
 - `../context.md`
 - `pbir_validate_wireframe.md` — post-hoc audit

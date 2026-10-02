@@ -49,6 +49,8 @@ process-only token cache by default. Set `PBIR_FABRIC_TOKEN_CACHE=persistent`
 to reuse authentication across server restarts. This requires working OS secure
 storage and never falls back to plaintext token storage.
 
+### Windows
+
 **1. Update the paths** in your chosen config file:
 - Replace `C:\\path\\to\\powerbi-report-mcp` with the actual report-mcp install location
 - Replace `C:\\path\\to\\powerbi-modeling-mcp` with the actual modeling-mcp install location (the VS Code extension installs to `%USERPROFILE%\.vscode\extensions\analysis-services.powerbi-modeling-mcp-*\`)
@@ -79,14 +81,24 @@ Add the report path as a second argument to skip the `pbir_set_report` step:
 "args": ["C:\\path\\to\\powerbi-report-mcp\\dist\\index.js", "C:\\path\\to\\MyReport.Report"]
 ```
 
-## Optional: Load all tools at startup
+## Optional: Load only the default tools
 
-Add an `env` block to load all 62 report tools instead of the minimal 14:
+All 66 report tools load at startup by default. Add an `env` block to load only the 14 default tools instead (the rest activate on demand through `pbir_load_tools`):
 
 ```json
 "powerbi-report-mcp": {
   "command": "node",
   "args": ["C:\\path\\to\\powerbi-report-mcp\\dist\\index.js"],
-  "env": { "MCP_TOOLS": "all" }
+  "env": { "MCP_TOOLS": "minimal" }
 }
 ```
+
+## Optional: Environment variables
+
+| Variable | Effect |
+|----------|--------|
+| `PBIR_REPORT_PATH` | Report to connect at startup when no path argument is passed (the argument wins if both are set) |
+| `MCP_BINDING_VALIDATION` | Field-binding validation mode: `strict` (default), `warn` or `off` |
+| `MCP_FONT_DEFAULTS` | Set to `off` to skip implicit font injection so the report theme drives typography |
+| `MCP_TOOLS` | `minimal` loads only the 14 default tools; unset loads all tools |
+| `PBIR_FABRIC_TOKEN_CACHE` | `persistent` reuses Fabric authentication across restarts (see above) |

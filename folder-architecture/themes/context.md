@@ -5,7 +5,7 @@
 Load this room when the task is *report-level* visual style: applying a custom
 JSON theme, listing existing themes, looking up valid style properties, or
 auditing visuals for theme overrides. Skip when the work is per-visual
-formatting (load `formatting/`) or pure data binding (load `visuals/`).
+formatting (see `skills/formatting.md`) or pure data binding (load `visuals/`).
 
 ## Tools in this room
 
@@ -30,10 +30,10 @@ Theme-from-scratch:
 
 ## Cross-references
 
-- Reads `knowledge/themes.md` for theme JSON structure
-- Reads `knowledge/themes-per-visual.md` for which properties per visualType
-- Reads `knowledge/formatting.md` for the per-visual override surface
-- Pairs with `formatting/` for the override side of the contract
+- Reads `skills/themes.md` for theme JSON structure
+- Reads `skills/themes-per-visual.md` for which properties per visualType
+- Reads `skills/formatting.md` for the per-visual override surface
+- Pairs with `skills/formatting.md` for the override side of the contract
 
 ## Gotchas
 

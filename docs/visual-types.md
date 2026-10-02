@@ -389,7 +389,7 @@ Formatting containers are the `category` values you pass to `pbir_format_visual`
 
 #### Funnel
 
-**Applies to:** `funnel`
+**Applies to:** `funnelChart` (the legacy alias `funnel` is also accepted by the bucket map)
 
 | Container | Notes |
 |-----------|-------|

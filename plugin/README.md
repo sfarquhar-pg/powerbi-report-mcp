@@ -26,7 +26,7 @@ The first time you ask, the agent will request the path to your `.pbip` folder a
 
 - The full Power BI Report MCP server, bundled and ready to run offline (no `npm install` required).
 - 3 native Cowork skills that auto-trigger when you ask to build, wireframe, or design a report.
-- 13 additional knowledge skills accessible inside the MCP via the `pbir_guide(topic)` tool — covering visuals, formatting, themes, calculations, slicers, filters, errors, token usage, and more.
+- 18 knowledge skills accessible inside the MCP via the `pbir_guide(topic)` tool — covering visuals, formatting, themes, calculations, slicers, filters, errors, token usage, and more.
 
 ## Requirements
 
@@ -45,7 +45,7 @@ The plugin runs the MCP server as a subprocess in the background. The 3 native s
 
 ## Source
 
-TODO: link the upstream `powerbi-report-mcp` repo here once the public URL is set.
+Source repository: <https://github.com/sfarquhar-pg/powerbi-report-mcp>
 
 ## License
 

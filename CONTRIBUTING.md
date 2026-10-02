@@ -61,11 +61,11 @@ Add the server to your MCP client config (e.g., Claude Desktop, Claude Code `set
 }
 ```
 
-To load all tools at startup instead of just the default set, add an `env` key:
+All tools load at startup by default. To load only the 14 default tools (the rest activate on demand through `pbir_load_tools`), add an `env` key:
 
 ```json
 {
-  "env": { "MCP_TOOLS": "all" }
+  "env": { "MCP_TOOLS": "minimal" }
 }
 ```
 
@@ -97,8 +97,12 @@ src/
     filters.ts          # Page and visual filter tools
     bulk.ts             # Bulk operations (bind, format, delete)
     bookmarks.ts        # Bookmark CRUD tools
-    guide.ts            # Knowledge layer (svg-visuals, report-design topics)
-    calculations.ts     # Visual calculation tools (parked)
+    guide.ts            # Knowledge layer (topics discovered from skills/*.md)
+    calculations.ts     # Visual calculation tools (parked, not registered)
+    fabric.ts           # Fabric authentication, pull, diff, mirror style and publish
+    validate.ts         # Wireframe validation and style consistency audit
+    layoutGrid.ts       # Layout grid planner
+    themeLookup.ts      # Theme property lookup
   helpers/
     createVisual.ts     # Visual creation logic, field parsing, Zod schemas
     formatting.ts       # Formatting property builders
@@ -143,7 +147,7 @@ export function registerMyTools(server: McpServer, ctx: ServerContext): void {
 Key patterns to follow:
 
 - **`server.tool(name, description, zodSchema, handler)`** -- all four arguments required.
-- The `safe()` wrapper is applied automatically by the patched `server.tool` in `index.ts` -- you do not need to wrap your handler manually.
+- The `safe()` wrapper is applied automatically by the `server.tool` shim in `index.ts` (which forwards to the SDK's `registerTool`) -- you do not need to wrap your handler manually.
 - Use **`z.preprocess`** for array parameters that MCP clients may serialize as JSON strings:
   ```typescript
   bindings: z.preprocess(
@@ -167,14 +171,16 @@ registerMyTools(server, ctx);
 
 ### Step 3: Add to the tool catalog
 
-Add your tool to the `ALL_TOOLS` record in `index.ts` with a short description:
+Add your tool's name to the `ALL_TOOLS` list in `index.ts`:
 
 ```typescript
-const ALL_TOOLS: Record<string, string> = {
+const ALL_TOOLS: readonly string[] = [
   // ... existing tools ...
-  my_tool_name: "Short description for the pbir_load_tools listing",
-};
+  "my_tool_name",
+];
 ```
+
+The tool's description (from `server.tool`) is what `pbir_load_tools` shows in its listing.
 
 ### Step 4: Decide on default vs. on-demand
 
@@ -202,7 +208,7 @@ Run `npm run audit` locally to see which tools are covered and by which skill fi
 
 ## 5. Testing Process
 
-There is no automated test suite. All testing is manual UAT (User Acceptance Testing) against a real Power BI report.
+The repo has automated script suites (see [section 6](#6-qa-expectations)), but they do not exercise Power BI Desktop. Verify tool behaviour with manual UAT (User Acceptance Testing) against a real Power BI report as well.
 
 ### How to run tests
 
@@ -214,13 +220,7 @@ There is no automated test suite. All testing is manual UAT (User Acceptance Tes
 
 ### Documenting results
 
-Record your test results in `tests.md` following the existing format:
-
-- A results table with columns: `#`, `Tool(s)`, `Input / Target`, `Result`, `Notes`.
-- A bugs table if you found and fixed issues during testing.
-- Observations section for anything noteworthy.
-
-See the existing UAT rounds in `tests.md` for examples. Each round is dated and lists the pages under test, results, and any bugs found.
+Record your test results in the pull request description: which tools you exercised, the pages or reports under test, pass/fail for each, any bugs you found and fixed, and anything noteworthy. A table with columns `#`, `Tool(s)`, `Input / Target`, `Result`, `Notes` works well. Earlier UAT rounds are kept for reference in [`docs/archive/tests.md`](docs/archive/tests.md); that file is no longer maintained, so don't add new rounds to it.
 
 ---
 
@@ -237,7 +237,9 @@ These are enforced by the pre-commit hook (`npm run hooks:install`) and by `.git
 | Wireframe validator | `npm run test:wireframe` | All 5 canonical layouts (A–E) still pass validation; all 8 negative cases still fail as expected. 13/13 required. |
 | Binding validator | `npm run test:binding` | 25 assertions for the field-reference validator (table lookup, type mismatch, parse errors, suggestions, mode resolution). |
 
-Run all four in one shot with `npm run test:all`.
+CI also runs `test:extract-title`, `test:layout`, `test:grid`, `test:slicer`, `test:schema-docs` and `test:report-diff`. The pre-commit hook runs only the skill-coverage audit and the wireframe validator, and only when staged changes touch `src/`, `skills/`, `scripts/`, `package.json` or `.githooks/`.
+
+Run the full set (including the checks above and the public-safety audit) with `npm run test:all`.
 
 ### `scripts/` folder structure
 
@@ -289,7 +291,7 @@ The single most important rule: **Power BI Desktop is the authority on valid PBI
 3. Read the JSON files it wrote.
 4. Match that structure exactly in your code.
 
-This "apply manually, read back JSON" method has been the most reliable way to discover correct formats throughout this project (see B04, B07, B08, B09, B12, B13 in `tests.md` for examples).
+This "apply manually, read back JSON" method has been the most reliable way to discover correct formats throughout this project (see B04, B07, B08, B09, B12, B13 in the archived `docs/archive/tests.md` for examples).
 
 ---
 
@@ -309,7 +311,7 @@ refactor: extract field parsing into helpers/createVisual.ts
 
 - Describe **what** changed and **why**.
 - Reference bug IDs (B01, B02, etc.) if fixing a known issue.
-- Include test results: which UAT tests you ran, pass/fail, any new bugs found.
+- Include test results in the PR description: which UAT tests you ran, pass/fail, any new bugs found.
 - If you changed PBIR output, note whether you verified the round-trip with PBI Desktop.
 
 ### PR description
@@ -322,12 +324,12 @@ refactor: extract field parsing into helpers/createVisual.ts
 
 ## 10. Known Parked Features
 
-The following features are intentionally parked. Do not attempt to fix or re-enable them without reading the prior investigation in `tests.md` and `CHANGELOG.md`.
+The following features are intentionally parked. Do not attempt to fix or re-enable them without reading the prior investigation in `docs/archive/tests.md` and `CHANGELOG.md`.
 
 ### Visual Calculations
 
 Tools: `add_visual_calculation`, `list_visual_calculations`, `delete_visual_calculation`
 
-Status: Code exists in `src/tools/calculations.ts` but is not registered. The correct PBIR JSON format was identified (`NativeVisualCalculation` projections in `queryState.Values.projections[]`), but calculations written via file edit do not render in PBI Desktop. This likely requires internal PBI Desktop state initialization that cannot be triggered through file manipulation alone. See B14 in `tests.md`.
+Status: Code exists in `src/tools/calculations.ts` but is not registered. The correct PBIR JSON format was identified (`NativeVisualCalculation` projections in `queryState.Values.projections[]`), but calculations written via file edit do not render in PBI Desktop. This likely requires internal PBI Desktop state initialization that cannot be triggered through file manipulation alone. See B14 in `docs/archive/tests.md`.
 
-If you want to investigate visual calculations, start by reading the relevant bug entries and UAT rounds in `tests.md` to understand what was already tried.
+If you want to investigate visual calculations, start by reading the relevant bug entries and UAT rounds in `docs/archive/tests.md` to understand what was already tried.

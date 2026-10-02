@@ -23,4 +23,4 @@ Two `content` entries:
 
 ## In the default tool set
 
-One of the 13 default-loaded tools (the most obvious one — required to bind anything).
+One of the 14 default-loaded tools (the most obvious one — required to bind anything).

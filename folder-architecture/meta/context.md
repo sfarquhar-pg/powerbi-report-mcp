@@ -7,7 +7,7 @@ and any time you need to look up domain knowledge or visualType catalogs.
 
 ## Tools in this room
 
-- `pbir_guide` — Fetch a topic from `knowledge/` (the 17 skills)
+- `pbir_guide` — Fetch a topic from `skills/` (the 18 skill topics)
 - `pbir_load_tools` — List or activate on-demand tools
 - `pbir_get_visual_types` — Catalog of valid visualTypes (slim by default)
 
@@ -15,13 +15,13 @@ and any time you need to look up domain knowledge or visualType catalogs.
 
 Session start:
 
-1. `pbir_load_tools()` (no args) to see what's available beyond the 13 defaults
+1. `pbir_load_tools()` (no args) to see what's available beyond the 14 defaults
 2. `pbir_load_tools(tools:[...])` to activate the ones you need
 3. `pbir_guide('elicitation')` / `pbir_guide('wireframes')` / `pbir_guide('report-design')` for orientation
 
 ## Cross-references
 
-- `pbir_guide` reads from `knowledge/*.md` directly (mirrored from `skills/*.md`)
+- `pbir_guide` reads topics live from `skills/*.md`
 - `pbir_load_tools` controls which tools in the other rooms are even callable
 - `pbir_get_visual_types` populates the `visualType` field for `pbir_add_visual`
 

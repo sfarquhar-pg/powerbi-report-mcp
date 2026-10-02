@@ -306,7 +306,7 @@ Creates a bookmark with an empty exploration state. Open the report in Desktop t
 ```
 1. pbir_create_page displayName="Product Detail" drillthrough={entity:"Product", property:"Name"}
 2. pbir_set_page_visibility hidden=true
-3. pbir_add_visual actionButton x=20 y=660 buttonAction="back" buttonText="Back"
+3. pbir_add_visual actionButton x=15 y=660 buttonAction="back" buttonText="Back"
 4. add data visuals — they inherit the drillthrough filter automatically
 ```
 

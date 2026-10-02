@@ -39,7 +39,7 @@ v0.9.6 (commit `08eda17`). To refresh after MCP changes:
 1. Re-extract per-tool descriptions from `registerTool(...)` calls
 2. Re-extract input/output schemas from zod definitions
 3. Update routing table in `claude.md` if tools were added/removed
-4. Update `BACKLOG.md` and `CHANGELOG.md` references if relevant
+4. Update `../BACKLOG.md` and `../../../CHANGELOG.md` references if relevant
 
 No automation provided — this is a snapshot, not a generated artifact.
 

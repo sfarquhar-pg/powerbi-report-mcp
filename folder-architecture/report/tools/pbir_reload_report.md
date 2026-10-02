@@ -40,5 +40,5 @@
 
 ## In the default tool set
 
-One of the 13 default-loaded tools (lazy-loaded clients can't invoke a deferred
+One of the 14 default-loaded tools (lazy-loaded clients can't invoke a deferred
 reload tool — see the inline rationale in `default-tools.ts`).

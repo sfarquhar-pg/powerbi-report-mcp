@@ -156,11 +156,11 @@ All three validators are CODE-only — markdown cannot replicate them.
 
 ## See also
 
-- `knowledge/visuals.md` — visualType selection
-- `knowledge/slicers.md` — slicer mechanics
-- `knowledge/shapes.md` — shape/line specifics
-- `knowledge/formatting.md` — format payload format
-- `knowledge/themes-per-visual.md` — which format keys per type
-- `meta/tools/pbir_lookup_theme_property.md` — schema-walker for valid props
-- `bulk/tools/pbir_bulk_bind.md` — rebind many visuals
+- `skills/visuals.md` — visualType selection
+- `skills/slicers.md` — slicer mechanics
+- `skills/shapes.md` — shape/line specifics
+- `skills/formatting.md` — format payload format
+- `skills/themes-per-visual.md` — which format keys per type
+- `themes/tools/pbir_lookup_theme_property.md` — schema-walker for valid props
+- `docs/archive/folder-architecture/bulk/tools/pbir_bulk_bind.md` — rebind many visuals
 - `../context.md`

@@ -1,6 +1,8 @@
 <!-- doc-version: 1.2 | Last updated: 2026-05-02 -->
 # Eval Baseline — v0.9.6
 
+> **Historical:** these numbers were recorded against v0.9.6 (recorded 2026-04-26); the package is now v0.12.0 and the baseline has not been re-run. Treat the frozen results as a reference point only. Re-run the evals before relying on the thresholds for a release.
+
 Reference accuracy against `evals/fixtures/sample.Report` and `evals/questions.xml`
 (10 read-only multi-hop questions). Recorded 2026-04-26.
 
